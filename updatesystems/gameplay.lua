@@ -135,10 +135,23 @@ DefineUpdateSystem({"initgame"}, USInitGame)
 USPlayerUpdate = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
-		if btn.up > 0 then comps.dir.dir = UP end
-		if btn.down > 0 then comps.dir.dir = DOWN end
-		if btn.left > 0 then comps.dir.dir = LEFT end
-		if btn.right > 0 then comps.dir.dir = RIGHT end
+		-- a direct input check leads to left/right overwriting up/down in control
+		-- we solve this by favoring newest cursor control and using that as our new direction
+		-- So if we hold up then left/right, or hold left then up/down, it works correctly
+		local keys = {btn.up, btn.right, btn.down, btn.left}
+		local newest_input = 0
+		local lowest = 0
+		for i,v in pairs(keys) do
+			if v > 0 then
+				if lowest == 0 or v < lowest then
+					lowest = v
+					newest_input = i
+				end
+			end
+		end
+		if newest_input > 0 then
+			comps.dir.dir = newest_input
+		end
 	end
 
 	-- Tank engine
