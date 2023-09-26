@@ -311,14 +311,21 @@ USShellCollision = function(ent)
 				KillEntity(ent)
 				-- TODO scoring
 			elseif player_shell == false and other_layer == LAYER_PLAYER then
-				-- TODO player tank impact
 				Small_Explosion(c.pos)
-				PlaySound("big_explosion")
-				local othercomps = GetEntComps(other)
-				Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
-				KillEntity(ent)
-				KillEntity(other)
-				-- TODO Lose a live or gameover
+				if HasEntComp(other, "player") then
+					-- player tank impact
+					PlaySound("big_explosion")
+					local othercomps = GetEntComps(other)
+					Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
+					KillEntity(ent)
+					KillEntity(other)
+					-- Lose a live or gameover
+					local playerdeath = SpawnEntity({"playerdeath"})
+					local pc = GetEntComps(playerdeath)
+					pc.playerdeath.player = other
+				else
+					error("There shouldn't be another entity in player layer that is not player at the moment")
+				end
 			end
 		end
 	end
@@ -508,14 +515,7 @@ USCriticalDeath = function(ent)
 		-- Remove critical target collider
 		EntRemComp(cde, "collid")
 		EntRemComp(cde, "collshape")
-		-- Remove player components to disable control
-		local plrs = CollectEntitiesWith({"player"})
-		for i=1,#plrs do
-			EntRemComp(plrs[i], "player")
-		end
-		StopSound("tank_idle")
-		StopSound("tank_moving")
-		local gameover = SpawnEntity({"gameover"})
+		Trigger_GameOver()
 	end
 	KillEntity(ent)
 end
@@ -543,3 +543,17 @@ USGameOver = function(ent)
 	KillEntity(ent)
 end
 DefineUpdateSystem({"gameover"}, USGameOver)
+
+USPlayerDeath = function(ent)
+	local c = GetEntComps(ent)
+	-- local player = c.playerdeath.player
+	-- local pc = GetEntComps(player)
+	-- if pc.player.lives > 0 then
+	-- 	pc.player.lives = pc.player.lives - 1
+	-- 	-- TODO respawn
+	-- else
+	-- 	Trigger_GameOver()
+	-- end
+	KillEntity(ent)
+end
+DefineUpdateSystem({"playerdeath"}, USPlayerDeath)

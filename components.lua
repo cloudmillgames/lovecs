@@ -32,8 +32,15 @@ DefineComponent("img", CImg)
 
 -- identify entity as player
 CPlayer = {
+	lives = 3
 }
 DefineComponent("player", CPlayer)
+
+-- indicates a player death event
+CPlayerDeath = {
+	player = -1		-- player entity that died
+}
+DefineComponent("playerdeath", CPlayerDeath)
 
 -- identify entity as enemy
 CEnemy = {

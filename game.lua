@@ -448,6 +448,17 @@ Spawn_EnemyTank = function(zone)
 	cc.killfunc.funcbind = makeFunc(Construct_EnemyTank, zone)
 end
 
+Trigger_GameOver = function()
+		-- Remove player components to disable control
+		local plrs = CollectEntitiesWith({"player"})
+		for i=1,#plrs do
+			EntRemComp(plrs[i], "player")
+		end
+		StopSound("tank_idle")
+		StopSound("tank_moving")
+		local gameover = SpawnEntity({"gameover"})
+end
+
 --------------------------------------------------------------------------------------------
 ----------------- Define Components
 --------------------------------------------------------------------------------------------
