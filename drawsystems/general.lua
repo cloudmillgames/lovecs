@@ -56,10 +56,15 @@ DSMapTilesDrawer = function(ent)
 	local img = Res.GetImage("ss")
 	local ss = Res.GetSpritesheet("tiles")
 	local layer = LAYER_MAP
+	local anim = 0
 	if comps.maptile.type == TILE_GRASS then
 		layer = LAYER_OVERMAP
+	elseif comps.maptile.type == TILE_WATER then
+		local mapclock = ECS:GetTaggedEntComp("mapclock", "mapclock")
+		assert(mapclock, "Must be non-nil at this point")
+		anim = mapclock.clock
 	end
-	Draw.drawQuad(layer, img, ss.quads[comps.maptile.type + 1], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
+	Draw.drawQuad(layer, img, ss.quads[comps.maptile.type + 1 + anim], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
 end
 ECS:DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
 

@@ -201,6 +201,18 @@ USEntArrKeep = function(ent)
 end
 ECS:DefineUpdateSystem({"entarrkeep"}, USEntArrKeep)
 
+-- Operates map clock used to animate water
+USMapClock = function(ent)
+	local c = ECS:GetEntComps(ent)
+	if c.mapclock._timer > 0 then
+		c.mapclock._timer = math.max(c.mapclock._timer - DeltaTime, 0)
+	else
+		c.mapclock.clock = 1 - c.mapclock.clock
+		c.mapclock._timer = c.mapclock.period
+	end
+end
+ECS:DefineUpdateSystem({"mapclock"}, USMapClock)
+
 --------------------------------------------------------------------------------------------
 ------------------------------------- DEPRECTAED (Implemented but no longer used)
 --------------------------------------------------------------------------------------------

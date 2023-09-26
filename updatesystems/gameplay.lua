@@ -148,6 +148,9 @@ USInitGame = function(ent)
 			tl = tl.."\n"
 		end
 		print(tl)
+
+		-- map clock
+		local mcent = ECS:SpawnEntity({"mapclock"}, "mapclock")
 	end
 	local def_ui = function()
 		local plrsession_ent = MAIN:GetFirstEntityWith({"plrsession"})

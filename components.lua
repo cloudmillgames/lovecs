@@ -158,6 +158,13 @@ CMapTile = {
 }
 ECS:DefineComponent("maptile", CMapTile)
 
+CMapClock = {
+	clock = 0,		-- ticks 0 and 1 at clockperiod
+	period = 0.5,
+	_timer = 0		-- used for clock ticking
+}
+ECS:DefineComponent("mapclock", CMapClock)
+
 -- Clear a tile from collision map associated with a maptile via column, row
 CCollisionMap_TileClear = {
 	collmap = -1,
