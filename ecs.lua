@@ -274,6 +274,7 @@ function KillAllEntities()
 		table.insert(ecsDeadEntities, ecsEntities[i])
 	end
 	ecsEntities = {}
+	--ecsEntityId = 1 this breaks collision and other stuff somehow
 end
 
 function IsDeadEntity(eid)
@@ -283,6 +284,10 @@ function IsDeadEntity(eid)
 		end
 	end
 	return false
+end
+
+function IsAliveEntity(eid)
+	return not IsDeadEntity(eid)
 end
 
 -- Create a comp as data
