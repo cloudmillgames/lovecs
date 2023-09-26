@@ -14,3 +14,21 @@ RES_SPRITESHEETS = {
 	icons = {"ss", {0, 80}, {96, 16}, {16, 16}}
 }
 
+RES_SOUNDEFFECTS = {
+	base_explosion = "res/sounds/base_explosion.ogg",
+	big_explosion = "res/sounds/big_explosion.ogg",
+	bonus_life = "res/sounds/bonus_life.ogg",
+	brick_destroy = "res/sounds/brick_destroy.ogg",
+	game_over = "res/sounds/game_over.ogg",
+	game_pause = "res/sounds/game_pause.ogg",
+	item_appear = "res/sounds/item_appear.ogg",
+	item_take = "res/sounds/item_take.ogg",
+	level_start = "res/sounds/level_start.ogg",
+	logo = "res/sounds/logo.ogg",
+	new_hiscore = "res/sounds/new_hiscore.ogg",
+	score_point = "res/sounds/score_point.ogg",
+	solid_impact = "res/sounds/solid_impact.ogg",
+	tank_idle = "res/sounds/tank_idle.ogg",
+	tank_moving = "res/sounds/tank_moving.ogg",
+	warning = "res/sounds/warning.ogg"
+}
