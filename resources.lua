@@ -23,7 +23,6 @@ RES_SOUNDEFFECTS = {
 	game_pause = "res/sounds/game_pause.ogg",
 	item_appear = "res/sounds/item_appear.ogg",
 	item_take = "res/sounds/item_take.ogg",
-	level_start = "res/sounds/level_start.ogg",
 	logo = "res/sounds/logo.ogg",
 	new_hiscore = "res/sounds/new_hiscore.ogg",
 	score_point = "res/sounds/score_point.ogg",
@@ -31,4 +30,8 @@ RES_SOUNDEFFECTS = {
 	tank_idle = "res/sounds/tank_idle.ogg",
 	tank_moving = "res/sounds/tank_moving.ogg",
 	warning = "res/sounds/warning.ogg"
+}
+
+RES_MUSIC = {
+	level_start = "res/sounds/level_start.ogg"
 }

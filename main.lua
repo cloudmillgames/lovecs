@@ -78,6 +78,7 @@ Res = {}
 Res.Images = {}
 Res.Spritesheets = {}
 Res.SoundEffects = {}
+Res.Music = {}
 
 Res.Init = function()
 end
@@ -150,6 +151,21 @@ end
 Res.LoadSoundEffectsPack = function(pack)
 	for k, v in pairs(pack) do
 		Res.LoadSoundEffect(k, v)
+	end
+end
+Res.GetMusic = function(name)
+	return Res.Music[name]
+end
+Res.LoadMusic = function(name, file)
+	if Res.Music[name] ~= nil then
+		print("Music "..tostring(name).." already loaded")
+		return
+	end
+	Res.Music[name] = love.audio.newSource(file, "stream")
+end
+Res.LoadMusicPack = function(pack)
+	for k, v in pairs(pack) do
+		Res.LoadMusic(k, v)
 	end
 end
 
@@ -225,6 +241,61 @@ Draw.exec = function()
 		Draw._list = {}
 		Draw._color = nil
 	end
+end
+
+---------------- Music system
+-- Logic behind creating this is the need to have music survive a KillAllEntities
+-- call which takes place between different parts of the games.
+-- Only one music track can be played at a time, all music non-looping by default.
+-- Can replay when music stops using isPlaying call. Or set looping via Love.
+Music = {}
+Music._currentSource = nil
+
+Music.play = function(name)
+	if Music._currentSource ~= nil then
+		print("Music: stop current music playback.")
+		Music._currentSource:stop()
+		Music._currentSource = nil
+	end
+	Music._currentSource = Res.GetMusic(name)
+	if Music._currentSource ~= nil then
+		print("Music: set current music to: "..tostring(name))
+		Music._currentSource:play()
+	else
+		print("Music: music wasn't defined: "..tostring(name))
+	end
+end
+
+Music.stop = function()
+	if Music._currentSource ~= nil then
+		print("Music: stop current music playback..")
+		Music._currentSource:stop()
+	end
+end
+
+Music.pause = function()
+	if Music._currentSource ~= nil then
+		print("Music: pausing music")
+		Music._currentSource:pause()
+	else
+		print("Music: pause called but no current music is playing")
+	end
+end
+
+Music.resume = function()
+	if Music._currentSource ~= nil then
+		print("Music: resuming music playback")
+		Music._currentSource:resume()
+	else
+		print("Music: resume called but no current music is paused")
+	end
+end
+
+Music.isPlaying = function()
+	if Music._currentSource ~= nil then
+		return Music._currentSource:isPlaying()
+	end
+	return false
 end
 
 ---------------- Collision System
