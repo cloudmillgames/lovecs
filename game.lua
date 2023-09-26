@@ -1,9 +1,14 @@
 -- ** GAME **
+
+--------------------------------------------------------------------------------------------
 ----------------- Libraries
+--------------------------------------------------------------------------------------------
 local easing = require 'easing'
 local text = require 'text'
 
+--------------------------------------------------------------------------------------------
 ----------------- Constants
+--------------------------------------------------------------------------------------------
 UP = 1
 RIGHT = 2
 DOWN = 3
@@ -40,7 +45,9 @@ LAYER_UI = 70
 LAYER_SCREEN = 80
 LAYER_DEBUG = 100
 
+--------------------------------------------------------------------------------------------
 ----------------- Functions
+--------------------------------------------------------------------------------------------
 function MAP_TO_COORD_X(column)
 	if column > MAP_TILES_COLUMNS or column < 1 then
 		error("Invalid Map column: "..column)
@@ -177,10 +184,14 @@ Time_Skip = function(ent)
 	end
 end
 
+--------------------------------------------------------------------------------------------
 ----------------- Define Components
+--------------------------------------------------------------------------------------------
 require 'components'
 
+--------------------------------------------------------------------------------------------
 ----------------- Define update systems
+--------------------------------------------------------------------------------------------
 -- Initializes start screen sequence
 USInitStart = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
@@ -584,16 +595,6 @@ USMove4 = function(ent)
 end
 DefineUpdateSystem({"move4", "pos"}, USMove4)
 
-USMove4Skipper = function(ent)
-	local c = GetEntComps(ent)
-	if c.move4.finished == false then
-		if type(c.move4_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.move4_skipper.skip_on) then
-			c.move4._timer = c.move4.duration
-		end
-	end
-end
-DefineUpdateSystem({"move4_skipper", "msg_receiver", "move4"}, USMove4Skipper)
-
 -- Dispatches given message on set button press (1) and kills self entity once message dispatched
 USMsgOnButton = function(ent)
 	local c = GetEntComps(ent)
@@ -669,16 +670,6 @@ USDelayedFunc = function(ent)
 end
 DefineUpdateSystem({"delayedfunc"}, USDelayedFunc)
 
-USDelayedFuncSkipper = function(ent)
-	local c = GetEntComps(ent)
-	if c.delayedfunc.delay > 0 then
-		if type(c.delayedfunc_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.delayedfunc_skipper.skip_on) then
-			c.delayedfunc.delay = 0
-		end
-	end
-end
-DefineUpdateSystem({"delayedfunc_skipper", "msg_receiver", "delayedfunc"}, USDelayedFuncSkipper)
-
 -- Calls given function when button is pressed (==1), auto kills if kill_after > 0
 USButtonFunc = function(ent)
 	local c = GetEntComps(ent)
@@ -725,7 +716,9 @@ USTimedown = function(ent)
 end
 DefineUpdateSystem({"timedown"}, USTimedown)
 
+--------------------------------------------------------------------------------------------
 ----------------- Define draw systems
+--------------------------------------------------------------------------------------------
 DSTextDrawer = function(ent)
 	local comps = GetEntComps(ent)
 	Draw.print(LAYER_UI, comps.text.text, comps.pos.x, comps.pos.y)
@@ -822,8 +815,33 @@ DSScreenEffect_Door = function(ent)
 end
 DefineDrawSystem({"screeneffect_door"}, DSScreenEffect_Door)
 
+--------------------------------------------------------------------------------------------
 ----------------- Create entities
+--------------------------------------------------------------------------------------------
 ents = {
 	e_init=SpawnEntity({"initstart"})
 	--e_init=SpawnEntity({"initgame"}),
 }
+
+--------------------------------------------------------------------------------------------
+------------------------------------- DEPRECTAED (Implemented but no longer used)
+--------------------------------------------------------------------------------------------
+USMove4Skipper = function(ent)
+	local c = GetEntComps(ent)
+	if c.move4.finished == false then
+		if type(c.move4_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.move4_skipper.skip_on) then
+			c.move4._timer = c.move4.duration
+		end
+	end
+end
+DefineUpdateSystem({"move4_skipper", "msg_receiver", "move4"}, USMove4Skipper)
+
+USDelayedFuncSkipper = function(ent)
+	local c = GetEntComps(ent)
+	if c.delayedfunc.delay > 0 then
+		if type(c.delayedfunc_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.delayedfunc_skipper.skip_on) then
+			c.delayedfunc.delay = 0
+		end
+	end
+end
+DefineUpdateSystem({"delayedfunc_skipper", "msg_receiver", "delayedfunc"}, USDelayedFuncSkipper)
