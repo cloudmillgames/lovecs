@@ -268,7 +268,7 @@ function ECS:HasEntComp(eid, comp_name)
 	return self._Entities[eid].cdata[comp_name] ~= nil
 end
 
--- Adds new comp to entity, 1 comp/name
+-- Adds new comp to entity, 1 comp/name, must be recalled after add/remove comp
 function ECS:EntAddComp(eid, comp_name)
 	assert(not self._Entities[eid].cdata[comp_name], "Ent has comp: "..tostring(comp_name))
 	assert(self._Components[comp_name], "Comp not defined: "..tostring(comp_name))
@@ -280,6 +280,7 @@ function ECS:EntAddComp(eid, comp_name)
 end
 
 -- Adds a list of new components to entity: comp_names = {"comp1", "comp2", ..}
+-- must be recalled after add/remove comps
 function ECS:EntAddComps(eid, comp_names)
 	assert(type(comp_names) == "table", "comp_names not a table: "..type(comp_names))
 
