@@ -316,6 +316,7 @@ function ECS:KillAllEntities()
 		table.insert(self._DeadEntities, self._Entities[i])
 	end
 	self._Entities = {}
+	self._NamedEnts = {}
 	--ecsEntityId = 1 this breaks collision and other stuff somehow
 end
 
