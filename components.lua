@@ -279,6 +279,16 @@ CSpawnDirector = {
 }
 DefineComponent("spawndirector", CSpawnDirector)
 
+-- Acts as the tank controller, must be add to a tank entity
+CEnemyControl = {
+	change_move = {0.1, 1.0},	-- min and max time for change movement action
+	move_dir = 0,				-- 0 means stationary, UP DOWN LEFT RIGHT for directions
+	fire_percent = {0.8, 0.85},	-- percentage range of fire event
+	dir_percent = {.05, .15, .2, .4, .2},-- percentage of 0/UP/RIGHT/DOWN/LEFT (must total 1.0)
+	_move_timer = 0.0,
+}
+DefineComponent("enemycontrol", CEnemyControl)
+
 ----------------------------------------------------- Deprecated Components
 
 -- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp

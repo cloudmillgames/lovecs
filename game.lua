@@ -338,7 +338,7 @@ end
 Construct_EnemyTank = function(spawn_pos)
 	local tank = Construct_Tank(TANK_COLORS[1], LAYER_TANKS)
 
-	EntAddComp(tank, "enemy")
+	EntAddComps(tank, {"enemy", "enemycontrol"})
 
 	local comps = GetEntComps(tank)
 

@@ -244,21 +244,30 @@ DefineUpdateSystem({"projectile", "pos", "dir", "collshape", "collid"}, USShellC
 -- Handles tank throttle preprocessing for direction and motion sensing to detect movement blockers
 USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
-	if comps.tank.moving == 0 then
-		-- Check for input throttle
-		comps.tank.throttle = (btn.up > 0 and comps.dir.dir == UP) or (btn.right > 0 and comps.dir.dir == RIGHT) or (btn.down > 0 and comps.dir.dir == DOWN) or (btn.left > 0 and comps.dir.dir == LEFT)
+	local is_player = HasEntComp(ent, "player")
+	local is_enemy = HasEntComp(ent, "enemycontrol")
 
-		if comps.tank.throttle then
-			-- Check motion sensor for clear movement
-			local sensor = comps.motionsensor4.sensors[comps.dir.dir]
-			local sensor_comps = GetEntComps(sensor)
-			if #sensor_comps.collid.events == 0 then
-				comps.tank.moving = TANK_STEP
+	if is_player or is_enemy then
+		if comps.tank.moving == 0 then
+			-- Check for input throttle
+			if is_player == true then
+				comps.tank.throttle = (btn.up > 0 and comps.dir.dir == UP) or (btn.right > 0 and comps.dir.dir == RIGHT) or (btn.down > 0 and comps.dir.dir == DOWN) or (btn.left > 0 and comps.dir.dir == LEFT)
+			else
+				comps.tank.throttle = comps.enemycontrol.move_dir > 0 and comps.dir.dir == comps.enemycontrol.move_dir
+			end
+
+			if comps.tank.throttle then
+				-- Check motion sensor for clear movement
+				local sensor = comps.motionsensor4.sensors[comps.dir.dir]
+				local sensor_comps = GetEntComps(sensor)
+				if #sensor_comps.collid.events == 0 then
+					comps.tank.moving = TANK_STEP
+				end
 			end
 		end
 	end
 end
-DefineUpdateSystem({"player", "dir", "tank", "motionsensor4"}, USTankThrottle)
+DefineUpdateSystem({"dir", "tank", "motionsensor4"}, USTankThrottle)
 
 -- Updates tank sprite animation and applies actual throttle movement with stepping and rounding
 USTankUpdate = function(ent)
@@ -356,3 +365,32 @@ USSpawnDirector = function(ent)
 	end
 end
 DefineUpdateSystem({"spawndirector"}, USSpawnDirector)
+
+USEnemyControl = function(ent)
+	local c = GetEntComps(ent)
+	
+	-- movement
+	if c.enemycontrol._move_timer <= 0.0 then
+		-- time to change movement
+		local r = love.math.random() -- [0, 1)
+		local v = 0.0
+		local d = 0	-- 0/UP/RIGHT/DOWN/LEFT
+		for i=1,#c.enemycontrol.dir_percent do
+			v = v + c.enemycontrol.dir_percent[i]
+			if r <= v then
+				break
+			else
+				d = math.min(4, d + 1)
+			end
+		end
+		c.enemycontrol.move_dir = d
+		c.enemycontrol._move_timer = love.math.random(c.enemycontrol.change_move[1], c.enemycontrol.change_move[2])
+	end
+	if c.tank.moving == 0 and c.enemycontrol.move_dir > 0 then
+		c.dir.dir = c.enemycontrol.move_dir
+	end
+	c.enemycontrol._move_timer = math.max(c.enemycontrol._move_timer - DeltaTime, 0)
+
+	-- TODO fire
+end
+DefineUpdateSystem({"enemycontrol", "tank", "dir"}, USEnemyControl)
