@@ -214,6 +214,7 @@ CScreenEffect_Door = {
 DefineComponent("screeneffect_door", CScreenEffect_Door)
 
 CTankTurret = {
+	trigger = false,		-- if true turret attempts fire, reset after check to false
 	cooldown = 1,
 	_timer_cooldown =0,
 	fire_point = {x=0, y=0},-- offset for spawning UP, directionally aware

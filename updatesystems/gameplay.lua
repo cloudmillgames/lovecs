@@ -156,13 +156,13 @@ USPlayerUpdate = function(ent)
 end
 DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 
--- Reads player fire input and applies turret cooldown, fires shell
-USPlayerTankTurret = function(ent)
+USTankTurret = function(ent)
 	local c = GetEntComps(ent)
-	if btn.z >= 1 then
+	if c.tankturret.trigger then
 		if c.tankturret._timer_cooldown == 0 then
 			if #c.tankturret._live_shells < c.tankturret.max_live_shells then
-				local shell = Fire_Shell(ent, true)
+				local is_player = HasEntComp(ent, "player")
+				local shell = Fire_Shell(ent, is_player)
 				if IsDeadEntity(shell) == false then
 					table.insert(c.tankturret._live_shells, shell)
 				end
@@ -171,8 +171,18 @@ USPlayerTankTurret = function(ent)
 		end
 	end
 	c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
+	c.tankturret.trigger = false
 end
-DefineUpdateSystem({"player", "tankturret", "dir", "pos", "collshape"}, USPlayerTankTurret)
+DefineUpdateSystem({"tankturret", "dir", "pos"}, USTankTurret)
+
+-- Reads player fire input and applies turret cooldown, fires shell
+USPlayerTankTurret = function(ent)
+	local c = GetEntComps(ent)
+	if btn.z >= 1 then
+		c.tankturret.trigger = true
+	end
+end
+DefineUpdateSystem({"player", "tankturret"}, USPlayerTankTurret)
 
 -- Tracks live shells and updates counters
 USTurretUpdate = function(ent)
@@ -391,6 +401,10 @@ USEnemyControl = function(ent)
 	end
 	c.enemycontrol._move_timer = math.max(c.enemycontrol._move_timer - DeltaTime, 0)
 
-	-- TODO fire
+	-- fire shell
+	local should_fire = love.math.random()
+	if should_fire >= c.enemycontrol.fire_percent[1] and should_fire < c.enemycontrol.fire_percent[2] then
+		c.tankturret.trigger = true
+	end
 end
-DefineUpdateSystem({"enemycontrol", "tank", "dir"}, USEnemyControl)
+DefineUpdateSystem({"enemycontrol", "tank", "tankturret", "dir"}, USEnemyControl)
