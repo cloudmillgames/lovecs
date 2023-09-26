@@ -65,6 +65,8 @@ TILE_GRASS = 3
 TILE_ICE = 4
 TILE_WATER = 5
 
+MSG_SPAWNS_FINISHED = "spawns-finished"
+
 BLACK = {0, 0, 0, 1}
 WHITE = {1, 1, 1, 1}
 RED = {1, 0, 0, 1}
@@ -73,6 +75,7 @@ BLUE = {0, 0, 1, 1}
 CYAN = {0, 1, 1, 1}
 MAGENTA = {1, 0, 1, 1}
 YELLOW = {1, 1, 0, 1}
+ORANGE = {1, 0.625, 0, 1}
 
 --------------------------------------------------------------------------------------------
 ----------------- Functions
@@ -166,6 +169,12 @@ end
 
 Construct_Gameplay = function()
 	local se = ECS:SpawnEntity({"initgame"})
+end
+
+Construct_Victory = function()
+	StopAllSounds()
+	ECS:KillAllEntities()
+	local se = ECS:SpawnEntity({"initscore"})
 end
 
 Construct_GameOver = function(ent)
@@ -310,7 +319,7 @@ Construct_SpawnDirector = function()
 	local c = ECS:GetEntComp(se, "spawndirector")
 
 	c.active = true
-	c.spawns = 20
+	c.spawns = 2
 	c.cooldown = 2.0
 
 	local zones = {
@@ -439,7 +448,8 @@ Construct_Tank = function(data)
 	local tank_color = data[2]
 	local tank_layer = data[3]
 	local dir = data[4]
-
+	
+	-- Spawn tank
 	local se = ECS:SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
 	local comps = ECS:GetEntComps(se)
 
@@ -463,7 +473,7 @@ Construct_Tank = function(data)
 	Construct_TankMotionSensors(se, TANK_STEP * SCALE)
 
 	if tank_layer == LAYER_PLAYER then
-		ECS:EntAddComp(se, "player")
+		ECS:EntAddComps(se, {"player", "msg_receiver"})
 	else
 		ECS:EntAddComps(se, {"enemy", "enemycontrol"})
 	end
@@ -476,6 +486,7 @@ end
 
 -- Enemy or player doesn't care
 Spawn_ATank = function(zone, tank_color, tank_layer, dir)
+	-- Spawn effect
 	local seffect = ECS:SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
 	local c = ECS:GetEntComps(seffect)
 
@@ -530,6 +541,20 @@ Trigger_GameOver = function()
 		state.gameover = true
 
 		local gameover = ECS:SpawnEntity({"gameover"})
+	end
+end
+
+Trigger_Victory = function()
+	local ss = ECS:GetTaggedEnt("stagestate")
+	local state = ECS:GetEntComp(ss, "stagestate")
+
+	if state.victory == false then
+		local action_victory = ECS:SpawnEntity({"delayedfunc"})
+		local ac = ECS:GetEntComps(action_victory)
+		ac.delayedfunc.func = Construct_Victory
+		ac.delayedfunc.delay = 4
+
+		state.victory = true
 	end
 end
 
@@ -643,6 +668,7 @@ require 'updatesystems.general'
 require 'updatesystems.effects'
 require 'updatesystems.intro'
 require 'updatesystems.gameplay'
+require 'updatesystems.score'
 
 --------------------------------------------------------------------------------------------
 ----------------- Define draw systems

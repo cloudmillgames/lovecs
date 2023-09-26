@@ -592,3 +592,14 @@ USPlayerDeath = function(ent)
 	ECS:KillEntity(ent)
 end
 ECS:DefineUpdateSystem({"playerdeath"}, USPlayerDeath)
+
+USVictoryChecker = function(ent)
+	local c = ECS:GetEntComps(ent)
+	for _, m in pairs(c.msg_receiver.msgs) do
+		if m.msg == MSG_SPAWNS_FINISHED then
+			Trigger_Victory()
+		end
+	end
+	c.msg_receiver.msgs = {}
+end
+ECS:DefineUpdateSystem({"player", "msg_receiver"}, USVictoryChecker)

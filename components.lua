@@ -8,9 +8,14 @@ ECS:DefineComponent("initstart", CInitStart)
 CInitGame = {}
 ECS:DefineComponent("initgame", CInitGame)
 
+-- Creates the score screen and everything after
+CInitScore = {}
+ECS:DefineComponent("initscore", CInitScore)
+
 -- State per stage
 CStageState = {
-	gameover = false
+	gameover = false,
+	victory = false,
 }
 ECS:DefineComponent("stagestate", CStageState)
 
@@ -296,7 +301,7 @@ CSpawnDirector = {
 	zones = {},			-- Each zone is 16x16 rect {x=,y=,w=,h=} guaranteed to be free of tiles
 	sensors = {},		-- Zone sensors to make sure no objects are in the area when spawning
 	cooldown = 2.0,		-- Minimum time between spawns
-	msg_on_finish = "spawns-finished",
+	msg_on_finish = MSG_SPAWNS_FINISHED,
 	msg_channel = Msging.CHANNEL,
 	_timer = 0,
 	_current_zone = 1,	-- Used to alternate between spawn zones
