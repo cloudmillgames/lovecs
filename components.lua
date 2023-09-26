@@ -130,6 +130,12 @@ CMove4 = {
 }
 DefineComponent("move4", CMove4)
 
+-- Skips move4 component by finishing it immediately, needs a msg_receiver to work
+CMove4Skipper = {
+	skip_on = nil,	-- message name to skip on
+}
+DefineComponent("move4_skipper", CMove4Skipper)
+
 CBmpText = {
     text = "",
     color = nil
@@ -164,6 +170,12 @@ CDelayedFunc = {
 }
 DefineComponent("delayedfunc", CDelayedFunc)
 
+-- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp
+CDelayedFuncSkipper = {
+	skip_on = nil,	-- msg name to skip on
+}
+DefineComponent("delayedfunc_skipper", CDelayedFuncSkipper)
+
 CScreenEffect_Door = {
     duration = 1,   -- duration of door effect
     stay = 1,       -- how long does it stay after effect is over, til delete
@@ -191,3 +203,11 @@ DefineComponent("projectile", CProjectile)
 COutOfBoundsKill = {
 }
 DefineComponent("outofbounds_kill", COutOfBoundsKill)
+
+-- Dispatch a message (via msg_dispatcher) when given button is pressed
+CMsgOnButton = {
+	btn_name="z",	-- button that dispatches message
+	msg="button-msg",		-- message name to dispatch
+	channel=Msging.CHANNEL	-- on which channel to dispatch
+}
+DefineComponent("msg_on_button", CMsgOnButton)

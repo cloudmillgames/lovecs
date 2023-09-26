@@ -178,23 +178,39 @@ require 'components'
 USInitStart = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
 	KillAllEntities()
-	local def_title = function()
-		local se = SpawnEntity({"pos", "animspr", "move4"})
+	local def_skipper = function()
+		-- Button that skips intro sequence
+		local se = SpawnEntity({"msg_on_button", "msg_dispatcher"})
 		local c = GetEntComps(se)
+		c.msg_on_button.btn_name = "z"
+		c.msg_on_button.msg = "skip-intro-seq"
+	end
+	local def_title = function()
+		local se = SpawnEntity({"pos", "animspr", "move4", "move4_skipper", "msg_receiver"})
+		local c = GetEntComps(se)
+
 		c.pos.x = (1280 - 188 * SCALE) / 2
 		c.pos.y = SC_MAP_RECT[2] + SC_MAP_RECT[4] + 10 * SCALE
+
 		c.animspr.spritesheet = "title"
 		c.animspr.scalex = SCALE
 		c.animspr.scaley = SCALE
+
 		c.move4.destx = c.pos.x
 		c.move4.desty = 140
 		c.move4.duration = 3
+
+		c.move4_skipper.skip_on = "skip-intro-seq"
 	end
-	local menumaker = SpawnEntity({"delayedfunc"})
+	local menumaker = SpawnEntity({"delayedfunc", "delayedfunc_skipper", "msg_receiver"})
 	local mmc = GetEntComp(menumaker, "delayedfunc")
 	mmc.delay = 3
 	mmc.func = Construct_StartMenu
+	local mms = GetEntComp(menumaker, "delayedfunc_skipper")
+	mms.skip_on = "skip-intro-seq"
+
 	LoadResources()
+	def_skipper()
 	def_title()
 end
 DefineUpdateSystem({"initstart"}, USInitStart)
@@ -565,6 +581,26 @@ USMove4 = function(ent)
 end
 DefineUpdateSystem({"move4", "pos"}, USMove4)
 
+USMove4Skipper = function(ent)
+	local c = GetEntComps(ent)
+	if c.move4.finished == false then
+		if type(c.move4_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.move4_skipper.skip_on) then
+			c.move4._timer = c.move4.duration
+		end
+	end
+end
+DefineUpdateSystem({"move4_skipper", "msg_receiver", "move4"}, USMove4Skipper)
+
+-- Dispatches given message on set button press (1) and kills self entity once message dispatched
+USMsgOnButton = function(ent)
+	local c = GetEntComps(ent)
+	if btn[c.msg_on_button.btn_name] == 1 then
+		Msging.dispatch(c.msg_dispatcher, c.msg_on_button.channel, c.msg_on_button.msg)
+		c.msg_dispatcher.kill_after_reading = true
+	end
+end
+DefineUpdateSystem({"msg_on_button", "msg_dispatcher"}, USMsgOnButton)
+
 -- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)
 	local comps = GetEntComps(ent)
@@ -629,6 +665,16 @@ USDelayedFunc = function(ent)
 	end
 end
 DefineUpdateSystem({"delayedfunc"}, USDelayedFunc)
+
+USDelayedFuncSkipper = function(ent)
+	local c = GetEntComps(ent)
+	if c.delayedfunc.delay > 0 then
+		if type(c.delayedfunc_skipper.skip_on) == "string" and Msging.received_msg(c.msg_receiver, c.delayedfunc_skipper.skip_on) then
+			c.delayedfunc.delay = 0
+		end
+	end
+end
+DefineUpdateSystem({"delayedfunc_skipper", "msg_receiver", "delayedfunc"}, USDelayedFuncSkipper)
 
 -- Fullscreen door transition effect
 USScreenEffect_Door = function(ent)
