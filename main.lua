@@ -10,11 +10,30 @@ end
 
 
 ---------------- Main
+btn = {
+	up = false,
+	down = false,
+	left = false,
+	right = false,
+	z = false,
+	x = false,
+	a = false,
+	s = false
+}
 
 function _init()
 end
 
 function _update60()
+	btn.up = love.keyboard.isDown("up")
+	btn.down = love.keyboard.isDown("down")
+	btn.left = love.keyboard.isDown("left")
+	btn.right = love.keyboard.isDown("right")
+	btn.z = love.keyboard.isDown("z")
+	btn.x = love.keyboard.isDown("x")
+	btn.a = love.keyboard.isDown("a")
+	btn.s = love.keyboard.isDown("s")
+	
 	UpdateECS()
 end
 
@@ -91,7 +110,3 @@ end
 function love.draw()
 	_draw()
 end
-
-function btn(key)
-	return false 
-end 
