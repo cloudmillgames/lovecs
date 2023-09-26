@@ -112,6 +112,7 @@ function ecsExecSystems(systems)
 	end
 end
 
+-- This is a surface clone table only
 function ecsCloneTable(t)
 	local tt = {}
 	for i, v in pairs(t) do tt[i] = v end
@@ -213,26 +214,24 @@ end
 -- Adds new comp to entity, 1 comp/name
 function EntAddComp(eid, comp_name)
 	assert(not ecsEntities[eid].cdata[comp_name] and ecsComponents[comp_name])
-	oldcomps = GetEntComps(eid)
-	newcomps = ecsCloneTable(oldcomps)
-	table.insert(newcomps, comp_name)
-	table.sort(newcomps)
-	ecsEntities[eid].comps = newcomps
+	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
+	table.insert(ecsEntities[eid].comps, comp_name)
+	table.sort(ecsEntities[eid].comps)
 	ecsEntities[eid].cdata[comp_name] = ecsCreateComp(ecsComponents[comp_name])
-	ecsRebucketEnt(eid, oldcomps, newcomps)
+	ecsRebucketEnt(eid, oldcomps, ecsEntities[eid].comps)
 end
 
 -- Removes component from entity
 function EntRemComp(eid, comp_name)
 	assert(ecsEntities[eid].cdata[comp_name])
-	oldcomps = GetEntComps(eid)
-	newcomps = ecsCloneTable(oldcomps)
-	for i=1,#newcomps do
-		if newcomps[i] == comp_name then
-			table.remove(newcomps, i)
-			break
+	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
+	local newcomps = {}
+	for i=1,#oldcomps do
+		if oldcomps[i] ~= comp_name then
+			table.insert(newcomps, oldcomps[i])
 		end
 	end
+	-- no need to resort newcomps as its the same as oldcomps sans comp_name
 	ecsEntities[eid].comps = newcomps
 	ecsEntities[eid].cdata[comp_name] = nil
 	ecsRebucketEnt(eid, oldcomps, newcomps)
