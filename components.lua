@@ -130,12 +130,6 @@ CMove4 = {
 }
 DefineComponent("move4", CMove4)
 
--- Skips move4 component by finishing it immediately, needs a msg_receiver to work
-CMove4Skipper = {
-	skip_on = nil,	-- message name to skip on
-}
-DefineComponent("move4_skipper", CMove4Skipper)
-
 CBmpText = {
     text = "",
     color = nil
@@ -170,11 +164,13 @@ CDelayedFunc = {
 }
 DefineComponent("delayedfunc", CDelayedFunc)
 
--- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp
-CDelayedFuncSkipper = {
-	skip_on = nil,	-- msg name to skip on
+-- Calls function when button is pressed (==1)
+CButtonFunc = {
+	btn_name = "z",
+	func = nil,
+	kill_after = -1,	-- how many runs to kill self entity after? -1 means do not kill, 1 is once
 }
-DefineComponent("delayedfunc_skipper", CDelayedFuncSkipper)
+DefineComponent("buttonfunc", CButtonFunc)
 
 CScreenEffect_Door = {
     duration = 1,   -- duration of door effect
@@ -211,3 +207,32 @@ CMsgOnButton = {
 	channel=Msging.CHANNEL	-- on which channel to dispatch
 }
 DefineComponent("msg_on_button", CMsgOnButton)
+
+-- Counts down time, stops if zero
+CTimedown = {
+	time = 0.0
+}
+DefineComponent("timedown", CTimedown)
+
+----------------------------------------------------- Deprecated Components
+
+-- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp
+CDelayedFuncSkipper = {
+	skip_on = nil,	-- msg name to skip on
+}
+DefineComponent("delayedfunc_skipper", CDelayedFuncSkipper)
+
+-- Calls function when message is received, requires a msg_receiver to work
+-- TO IMPLEMENT
+CMsgFunc = {
+	msg = "func-msg",
+	channel = Msging.CHANNEL,
+	func = nil
+}
+DefineComponent("msgfunc", CMsgFunc)
+
+-- Skips move4 component by finishing it immediately, needs a msg_receiver to work
+CMove4Skipper = {
+	skip_on = nil,	-- message name to skip on
+}
+DefineComponent("move4_skipper", CMove4Skipper)

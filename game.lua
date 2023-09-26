@@ -65,7 +65,7 @@ LoadResources = function()
 	Res.SoundEffects["tank_moving"]:setLooping(true)
 end
 
-Construct_StartMenu = function()
+Construct_StartMenu = function(ent)
 	local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
 	local places = {}
 	for i=1,3 do
@@ -89,7 +89,7 @@ Construct_StartMenu = function()
 	mc.uianimspr.frametime = 0.1
 end
 
-Construct_LevelScreen = function()
+Construct_LevelScreen = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
 	KillAllEntities()
 	local def_text = function()
@@ -170,6 +170,13 @@ GetMovementFromDir = function(dir)
 	end
 end
 
+Time_Skip = function(ent)
+	local c = GetEntComps(ent)
+	if c.timedown.time > 0 then
+		TimeWarp = c.timedown.time
+	end
+end
+
 ----------------- Define Components
 require 'components'
 
@@ -179,14 +186,14 @@ USInitStart = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
 	KillAllEntities()
 	local def_skipper = function()
-		-- Button that skips intro sequence
-		local se = SpawnEntity({"msg_on_button", "msg_dispatcher"})
+		local se = SpawnEntity({"timedown", "buttonfunc"})
 		local c = GetEntComps(se)
-		c.msg_on_button.btn_name = "z"
-		c.msg_on_button.msg = "skip-intro-seq"
+		c.timedown.time = 3.0
+		c.buttonfunc.func = Time_Skip
+		c.buttonfunc.kill_after = 1
 	end
 	local def_title = function()
-		local se = SpawnEntity({"pos", "animspr", "move4", "move4_skipper", "msg_receiver"})
+		local se = SpawnEntity({"pos", "animspr", "move4"})
 		local c = GetEntComps(se)
 
 		c.pos.x = (1280 - 188 * SCALE) / 2
@@ -199,15 +206,11 @@ USInitStart = function(ent)
 		c.move4.destx = c.pos.x
 		c.move4.desty = 140
 		c.move4.duration = 3
-
-		c.move4_skipper.skip_on = "skip-intro-seq"
 	end
-	local menumaker = SpawnEntity({"delayedfunc", "delayedfunc_skipper", "msg_receiver"})
+	local menumaker = SpawnEntity({"delayedfunc"})
 	local mmc = GetEntComp(menumaker, "delayedfunc")
 	mmc.delay = 3
 	mmc.func = Construct_StartMenu
-	local mms = GetEntComp(menumaker, "delayedfunc_skipper")
-	mms.skip_on = "skip-intro-seq"
 
 	LoadResources()
 	def_skipper()
@@ -596,7 +599,7 @@ USMsgOnButton = function(ent)
 	local c = GetEntComps(ent)
 	if btn[c.msg_on_button.btn_name] == 1 then
 		Msging.dispatch(c.msg_dispatcher, c.msg_on_button.channel, c.msg_on_button.msg)
-		c.msg_dispatcher.kill_after_reading = true
+		c.msg_dispatcher.kill_after_dispatch = true
 	end
 end
 DefineUpdateSystem({"msg_on_button", "msg_dispatcher"}, USMsgOnButton)
@@ -660,7 +663,7 @@ USDelayedFunc = function(ent)
 	local df = GetEntComp(ent, "delayedfunc")
 	df.delay = df.delay - DeltaTime
 	if df.delay <= 0 then
-		df.func()
+		df.func(ent)
 		KillEntity(ent)
 	end
 end
@@ -675,6 +678,21 @@ USDelayedFuncSkipper = function(ent)
 	end
 end
 DefineUpdateSystem({"delayedfunc_skipper", "msg_receiver", "delayedfunc"}, USDelayedFuncSkipper)
+
+-- Calls given function when button is pressed (==1), auto kills if kill_after > 0
+USButtonFunc = function(ent)
+	local c = GetEntComps(ent)
+	if btn[c.buttonfunc.btn_name] == 1 then
+		c.buttonfunc.func(ent)
+		if c.buttonfunc.kill_after > 0 then
+			c.buttonfunc.kill_after = c.buttonfunc.kill_after - 1
+			if c.buttonfunc.kill_after == 0 then
+				KillEntity(ent)
+			end
+		end
+	end
+end
+DefineUpdateSystem({"buttonfunc"}, USButtonFunc)
 
 -- Fullscreen door transition effect
 USScreenEffect_Door = function(ent)
@@ -698,6 +716,14 @@ USOutOfBoundsKill = function(ent)
 	end
 end
 DefineUpdateSystem({"outofbounds_kill", "pos"}, USOutOfBoundsKill)
+
+USTimedown = function(ent)
+	local t = GetEntComp(ent, "timedown")
+	if t.time > 0 then
+		t.time = math.max(t.time - DeltaTime, 0.0)
+	end
+end
+DefineUpdateSystem({"timedown"}, USTimedown)
 
 ----------------- Define draw systems
 DSTextDrawer = function(ent)

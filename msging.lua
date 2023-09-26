@@ -19,7 +19,7 @@ DefineComponent("msg_receiver", Msging.Receiver)
 
 Msging.Dispatcher = {
     dispatch = {},      -- expects {channel="name", msg="name", data=data} per msg, messages dispatched next frame update. Cleared by Msging system once processed
-    kill_after_reading = false  -- kill self entity once a msg is dispatched from this dispatcher
+    kill_after_dispatch = false  -- kill self entity once a msg is dispatched from this dispatcher
 }
 DefineComponent("msg_dispatcher", Msging.Dispatcher)
 
