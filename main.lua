@@ -8,6 +8,14 @@ function add(t, v)
 	table.insert(t, v)
 end
 
+-- true if table has given value
+function has_value(t, val)
+	for _, v in pairs(t) do
+		if v == val then return true end
+	end
+	return false
+end
+
 -- '+=' not really but more readable
 function incr(value, amount)
 	return value + amount
