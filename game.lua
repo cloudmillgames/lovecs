@@ -109,23 +109,23 @@ end
 
 -- Start menu sequence
 Restart_Game = function(ent)
-	KillAllEntities()
-	local start = SpawnEntity({"initstart"})
+	ECS:KillAllEntities()
+	local start = ECS:SpawnEntity({"initstart"})
 end
 
 Construct_StartMenu = function(ent)
 	local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
 	local places = {}
 	for i=1,3 do
-		local se = SpawnEntity({"pos", "bmptext"})
-		local c = GetEntComps(se)
+		local se = ECS:SpawnEntity({"pos", "bmptext"})
+		local c = ECS:GetEntComps(se)
 		c.pos.x = (1280 - 250) / 2
 		c.pos.y = i * 18 * SCALE + (720 / 2)
 		c.bmptext.text = txt[i]
 		add(places, {x = c.pos.x - 48, y = c.pos.y - 14})
 	end
-	local menu = SpawnEntity({"menucursor", "uianimspr"})
-	local mc = GetEntComps(menu)
+	local menu = ECS:SpawnEntity({"menucursor", "uianimspr"})
+	local mc = ECS:GetEntComps(menu)
 	mc.menucursor.places = places
 	-- 1 PLAYER, 2 PLAYER, CONSTRUCTION function calls
 	mc.menucursor.funcs = {Construct_LevelScreen, Construct_LevelScreen, Construct_LevelScreen}
@@ -139,10 +139,10 @@ end
 
 Construct_LevelScreen = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
-	KillAllEntities()
+	ECS:KillAllEntities()
 	local def_text = function()
-		local se = SpawnEntity({"pos", "bmptext", "delayedfunc"})
-		local c = GetEntComps(se)
+		local se = ECS:SpawnEntity({"pos", "bmptext", "delayedfunc"})
+		local c = ECS:GetEntComps(se)
 		c.pos.x = (1280 / 2) - (8 * 5 * SCALE)
 		c.pos.y = (720 / 2) - 4
 		c.bmptext.text = "STAGE   "..tostring(STAGE)
@@ -155,16 +155,16 @@ Construct_LevelScreen = function(ent)
 end
 
 Construct_Gameplay = function()
-	local se = SpawnEntity({"initgame"})
+	local se = ECS:SpawnEntity({"initgame"})
 end
 
 Construct_GameOver = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
-	KillAllEntities()
+	ECS:KillAllEntities()
 	StopAllSounds()
 
-	local gameover = SpawnEntity({"pos", "spr", "delayedfunc"})
-	local gc = GetEntComps(gameover)
+	local gameover = ECS:SpawnEntity({"pos", "spr", "delayedfunc"})
+	local gc = ECS:GetEntComps(gameover)
 
 	gc.spr.spritesheet = "gameover"
 	gc.spr.scalex = SCALE
@@ -182,7 +182,7 @@ end
 
 -- Fires shell, returns shell entity
 Fire_Shell = function(ent, is_player)
-	local ec = GetEntComps(ent)
+	local ec = ECS:GetEntComps(ent)
 	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
 	local bul_center = {x=2, y=2}
 	if ec.dir.dir == RIGHT then
@@ -204,8 +204,8 @@ Fire_Shell = function(ent, is_player)
 		layer = LAYER_PLAYER_PROJECTILES
 	end
 
-	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill", "collshape", "collid"})
-	local c = GetEntComps(be)
+	local be = ECS:SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill", "collshape", "collid"})
+	local c = ECS:GetEntComps(be)
 	-- projectile
 	c.projectile.speed = SHELL_SPEED * SCALE
 	c.projectile.shooter_entity = ent
@@ -230,7 +230,7 @@ Fire_Shell = function(ent, is_player)
 
 	-- Specific to player
 	if is_player == true then
-		EntAddComp(be, "playershell")
+		ECS:EntAddComp(be, "playershell")
 		PlaySound("tank_fire")
 	end
 
@@ -239,8 +239,8 @@ end
 
 -- pos = {x=N, y=N}
 Small_Explosion = function(pos)
-	local se = SpawnEntity({"animspr", "pos", "animspr_onecycle"})
-	local c = GetEntComps(se)
+	local se = ECS:SpawnEntity({"animspr", "pos", "animspr_onecycle"})
+	local c = ECS:GetEntComps(se)
 
 	local sw = Res.GetSpriteWidth("small_explosion") * SCALE
 	local sh = Res.GetSpriteHeight("small_explosion") * SCALE
@@ -257,8 +257,8 @@ end
 
 -- pos = {x=N, y=N}
 Big_Explosion = function(pos)
-	local se = SpawnEntity({"animspr", "pos", "animspr_onecycle"})
-	local c = GetEntComps(se)
+	local se = ECS:SpawnEntity({"animspr", "pos", "animspr_onecycle"})
+	local c = ECS:GetEntComps(se)
 
 	local sw = Res.GetSpriteWidth("explosion") * SCALE
 	local sh = Res.GetSpriteHeight("explosion") * SCALE
@@ -288,7 +288,7 @@ GetMovementFromDir = function(dir)
 end
 
 Time_Skip = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	if c.timedown.time > 0 then
 		GameTimeWarp = c.timedown.time
 	end
@@ -296,8 +296,8 @@ end
 
 -- Returns spawndirector entity
 Construct_SpawnDirector = function()
-	local se = SpawnEntity({"spawndirector"})
-	local c = GetEntComp(se, "spawndirector")
+	local se = ECS:SpawnEntity({"spawndirector"})
+	local c = ECS:GetEntComp(se, "spawndirector")
 
 	c.active = true
 	c.spawns = 20
@@ -311,8 +311,8 @@ Construct_SpawnDirector = function()
 
 	local sensors = {}
 	for i=1,#zones do
-		local s = SpawnEntity({"collsensor", "pos", "collshape", "collid", "child"})
-		local cc = GetEntComps(s)
+		local s = ECS:SpawnEntity({"collsensor", "pos", "collshape", "collid", "child"})
+		local cc = ECS:GetEntComps(s)
 
 		cc.child.parent = se
 
@@ -338,15 +338,15 @@ end
 -- entity: to sense, must have motionsensor4, pos, collshape, collid
 Construct_TankMotionSensors = function(entity, step)
 	assert(step ~= nil)
-	assert(HasEntComp(entity, "pos"))
-	assert(HasEntComp(entity, "collshape"))
-	assert(HasEntComp(entity, "collid"))
-	assert(HasEntComp(entity, "motionsensor4"))
-	local comps = GetEntComps(entity)
+	assert(ECS:HasEntComp(entity, "pos"))
+	assert(ECS:HasEntComp(entity, "collshape"))
+	assert(ECS:HasEntComp(entity, "collid"))
+	assert(ECS:HasEntComp(entity, "motionsensor4"))
+	local comps = ECS:GetEntComps(entity)
 	local sensors = {}
 	for i=1,4 do
-		local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid", "child"})
-		local c = GetEntComps(s)
+		local s = ECS:SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid", "child"})
+		local c = ECS:GetEntComps(s)
 		--c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
 
 		c.child.parent = entity
@@ -367,20 +367,20 @@ Construct_TankMotionSensors = function(entity, step)
 
 		add(sensors, s)
 	end
-	local up_shape = GetEntComp(sensors[UP], "collshape")
+	local up_shape = ECS:GetEntComp(sensors[UP], "collshape")
 	up_shape.y = decr(up_shape.y, step)
-	local right_shape = GetEntComp(sensors[RIGHT], "collshape")
+	local right_shape = ECS:GetEntComp(sensors[RIGHT], "collshape")
 	right_shape.x = incr(right_shape.x, step)
-	local down_shape = GetEntComp(sensors[DOWN], "collshape")
+	local down_shape = ECS:GetEntComp(sensors[DOWN], "collshape")
 	down_shape.y = incr(down_shape.y, step)
-	local left_shape = GetEntComp(sensors[LEFT], "collshape")
+	local left_shape = ECS:GetEntComp(sensors[LEFT], "collshape")
 	left_shape.x = decr(left_shape.x, step)
 	comps.motionsensor4.sensors = sensors
 end
 
 Construct_Tank = function(tank_color, tank_layer)
-	local se = SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
-	local comps = GetEntComps(se)
+	local se = ECS:SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
+	local comps = ECS:GetEntComps(se)
 
 	comps.dbgname.name = "Tank_"..tostring(se)
 
@@ -407,9 +407,9 @@ end
 Construct_EnemyTank = function(spawn_pos)
 	local tank = Construct_Tank(TANK_COLORS[1], LAYER_TANKS)
 
-	EntAddComps(tank, {"enemy", "enemycontrol"})
+	ECS:EntAddComps(tank, {"enemy", "enemycontrol"})
 
-	local comps = GetEntComps(tank)
+	local comps = ECS:GetEntComps(tank)
 
 	comps.pos.x = spawn_pos.x
 	comps.pos.y = spawn_pos.y
@@ -418,8 +418,8 @@ Construct_EnemyTank = function(spawn_pos)
 end
 
 Spawn_EnemyTank = function(zone)
-	local seffect = SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
-	local c = GetEntComps(seffect)
+	local seffect = ECS:SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
+	local c = ECS:GetEntComps(seffect)
 
 	c.animspr.spritesheet = "spawn_effect"
 	c.animspr.scalex = SCALE
@@ -441,8 +441,8 @@ Spawn_EnemyTank = function(zone)
 	c.collid.dynamic = false
 	c.collid.layer = LAYER_BG
 
-	local kfunc = SpawnEntity({"killfunc"})
-	local cc = GetEntComps(kfunc)
+	local kfunc = ECS:SpawnEntity({"killfunc"})
+	local cc = ECS:GetEntComps(kfunc)
 
 	cc.killfunc.entity = seffect
 	cc.killfunc.funcbind = makeFunc(Construct_EnemyTank, zone)
@@ -450,13 +450,13 @@ end
 
 Trigger_GameOver = function()
 		-- Remove player components to disable control
-		local plrs = CollectEntitiesWith({"player"})
+		local plrs = ECS:CollectEntitiesWith({"player"})
 		for i=1,#plrs do
-			EntRemComp(plrs[i], "player")
+			ECS:EntRemComp(plrs[i], "player")
 		end
 		StopSound("tank_idle")
 		StopSound("tank_moving")
-		local gameover = SpawnEntity({"gameover"})
+		local gameover = ECS:SpawnEntity({"gameover"})
 end
 
 --------------------------------------------------------------------------------------------
@@ -483,6 +483,6 @@ require 'drawsystems'
 ----------------- Create entities
 --------------------------------------------------------------------------------------------
 ents = {
-	e_init=SpawnEntity({"initstart"})
-	--e_init=SpawnEntity({"initgame"}),
+	e_init=ECS:SpawnEntity({"initstart"})
+	--e_init=ECS:SpawnEntity({"initgame"}),
 }

@@ -77,7 +77,7 @@ Collision.Shape = {
     type = SHAPE_POINT,
     x = 0, y = 0, w = 1, h = 1
 }
-DefineComponent("collshape", Collision.Shape)
+ECS:DefineComponent("collshape", Collision.Shape)
 
 Collision.ID = {
     ent = 0,        -- reference to self entity
@@ -94,7 +94,7 @@ Collision.ID = {
 
     custom = nil    -- custom data that can be set to anything
 }
-DefineComponent("collid", Collision.ID)
+ECS:DefineComponent("collid", Collision.ID)
 
 Collision.Map = {
     matrix = {},    -- 2D matrix of map tiles, 0 means no tile there
@@ -104,7 +104,7 @@ Collision.Map = {
     rows = 16,      -- how many rows?
     map_rect = {}   -- {x=, y=, w=, h=} SCALED
 }
-DefineComponent("collmap", Collision.Map)
+ECS:DefineComponent("collmap", Collision.Map)
 
 -- Collision system checks/events
 -- p1, p2: positions ("pos")
@@ -168,7 +168,7 @@ Collision.collideShape = {
 
 -- Expensive call, once per frame
 Collision.run = function()
-    local ents = CollectEntitiesWith({"pos", "collid", "collshape"})
+    local ents = ECS:CollectEntitiesWith({"pos", "collid", "collshape"})
     local e1 = 0
     local e2 = 0
     local e1c = nil
@@ -177,12 +177,12 @@ Collision.run = function()
 
     -- Clear prev events
     for i=1,#ents do
-        local c = GetEntComps(ents[i])
+        local c = ECS:GetEntComps(ents[i])
         c.collid.events = {}
     end
 
     -- Collision detection between map colliders and geometric colliders
-    local collmap_ents = CollectEntitiesWith({"collmap"})
+    local collmap_ents = ECS:CollectEntitiesWith({"collmap"})
     local collmap = nil
     local idx = -1
     local number_to_map = function(n, tw)
@@ -214,10 +214,10 @@ Collision.run = function()
 
     -- Ideally, there should be one map collider only
     for _,cment in pairs(collmap_ents) do
-        collmap = GetEntComp(cment, "collmap")
+        collmap = ECS:GetEntComp(cment, "collmap")
         for i=1,#ents do
             e1 = ents[i]
-            e1c = GetEntComps(e1)
+            e1c = ECS:GetEntComps(e1)
             e2 = 0
 
             if e1c.collid.dynamic == true then
@@ -255,8 +255,8 @@ Collision.run = function()
         for j=i+1,#ents do
             e1 = ents[i]
             e2 = ents[j]
-            e1c = GetEntComps(e1)
-            e2c = GetEntComps(e2)
+            e1c = ECS:GetEntComps(e1)
+            e2c = ECS:GetEntComps(e2)
 
             if e1c.collid.sensor == true or e2c.collid.sensor == true then
                 -- sensors don't care about dynamic static state
@@ -308,10 +308,10 @@ end
 Collision.draw = function()
     if Collision.DEBUG then
         local prev_color = {love.graphics.getColor()}
-        local ents = CollectEntitiesWith({"pos", "collshape", "collid"})
+        local ents = ECS:CollectEntitiesWith({"pos", "collshape", "collid"})
         for i=1,#ents do
             local ent = ents[i]
-            local c = GetEntComps(ent)
+            local c = ECS:GetEntComps(ent)
             local ps = {}
             local rs = {}
             local cs = {}

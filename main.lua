@@ -1,7 +1,11 @@
 #!/usr/bin/love
 
 require 'strict'
-require 'ecs'
+
+ECSClass = require 'ecs'
+
+ECS = ECSClass.new()
+MAIN = ECSClass.new()
 
 ---------------- Love2D-PICO8 adaptor
 function add(t, v)
@@ -37,12 +41,12 @@ CompPos = {
 	x = 0,
 	y = 0
 }
-DefineComponent("pos", CompPos)
+ECS:DefineComponent("pos", CompPos)
 -- a name for debugging
 CompName = {
 	name = "unnamed"
 }
-DefineComponent("dbgname", CompName)
+ECS:DefineComponent("dbgname", CompName)
 
 ---------------- Utility stuffs
 function CompEqual(comp1, comp2)
@@ -384,13 +388,18 @@ function _update()
 	
 	Msging.run()
 	Collision.run()
-	UpdateECS()
+
+	ECS:UpdateECS()
+
+	MAIN:UpdateECS()
 end
 
 function _draw() 
-	DrawECS()
+	ECS:DrawECS()
 	Draw.exec()
 	Collision.draw()
+
+	MAIN:DrawECS()
 end
 
 ---------------- Game

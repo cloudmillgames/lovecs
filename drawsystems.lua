@@ -3,19 +3,19 @@
 local text = require 'text'
 
 DSTextDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	Draw.print(LAYER_UI, comps.text.text, comps.pos.x, comps.pos.y, 0, comps.text.scale, comps.text.scale)
 end
-DefineDrawSystem({"pos", "text"}, DSTextDrawer)
+ECS:DefineDrawSystem({"pos", "text"}, DSTextDrawer)
 
 DSImageDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	Draw.drawImage(LAYER_EFFECTS, Res.GetImage(comps.img.name), comps.pos.x, comps.pos.y, comps.img.orient, comps.img.scalex, comps.img.scaley)
 end
-DefineDrawSystem({"pos", "img"}, DSImageDrawer)
+ECS:DefineDrawSystem({"pos", "img"}, DSImageDrawer)
 
 DSSpriteDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	local ss = Res.GetSpritesheet(comps.spr.spritesheet)
 	local img = Res.GetImage(ss.image)
 	if comps.spr.color then
@@ -23,10 +23,10 @@ DSSpriteDrawer = function(ent)
 	end
 	Draw.drawQuad(comps.spr.layer, img, ss.quads[comps.spr.spriteid], comps.pos.x, comps.pos.y, comps.spr.orient, comps.spr.scalex, comps.spr.scaley)
 end
-DefineDrawSystem({"pos", "spr"}, DSSpriteDrawer)
+ECS:DefineDrawSystem({"pos", "spr"}, DSSpriteDrawer)
 
 DSAnimSpriteDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	local ss = Res.GetSpritesheet(comps.animspr.spritesheet)
 	local img = Res.GetImage(ss.image)
 	if comps.animspr.color then
@@ -34,24 +34,24 @@ DSAnimSpriteDrawer = function(ent)
 	end
 	Draw.drawQuad(LAYER_PLAYER, img, ss.quads[comps.animspr.curr_frame], comps.pos.x, comps.pos.y, comps.animspr.orient, comps.animspr.scalex, comps.animspr.scaley)
 end
-DefineDrawSystem({"pos", "animspr"}, DSAnimSpriteDrawer)
+ECS:DefineDrawSystem({"pos", "animspr"}, DSAnimSpriteDrawer)
 
 DSArenaBGDrawer = function(ent)
 	Draw.setColor({0, 0, 0, 1})
 	Draw.rectangle(LAYER_BG, "fill", SC_MAP_RECT[1], SC_MAP_RECT[2], MAP_TILES_COLUMNS * SC_TILE_WIDTH, MAP_TILES_ROWS * SC_TILE_HEIGHT)
 end
-DefineDrawSystem({"arena_bg"}, DSArenaBGDrawer)
+ECS:DefineDrawSystem({"arena_bg"}, DSArenaBGDrawer)
 
 DSMapTilesDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	local img = Res.GetImage("ss")
 	local ss = Res.GetSpritesheet("tiles")
 	Draw.drawQuad(LAYER_MAP, img, ss.quads[comps.maptile.type + 1], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
 end
-DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
+ECS:DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
 
 DSBmpTextDrawer = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	local fontss = Res.GetSpritesheet("font")
 	local fontimg = Res.GetImage(fontss.image)
 	for i=1,comps.bmptext.text:len() do
@@ -67,19 +67,19 @@ DSBmpTextDrawer = function(ent)
 		Draw.drawQuad(LAYER_UI, fontimg, fontss.quads[si + 1], comps.pos.x + i * 8 * SCALE, comps.pos.y, 0, SCALE, SCALE)
 	end
 end
-DefineDrawSystem({"pos", "bmptext"}, DSBmpTextDrawer)
+ECS:DefineDrawSystem({"pos", "bmptext"}, DSBmpTextDrawer)
 
 DSMenuCursor = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	local ss = Res.GetSpritesheet(comps.uianimspr.spritesheet)
 	local img = Res.GetImage(ss.image)
 	local place = comps.menucursor.places[comps.menucursor.current]
 	Draw.drawQuad(LAYER_UI, img, ss.quads[comps.uianimspr.frames[comps.uianimspr.curr_frame]], place.x, place.y, 0, comps.uianimspr.scalex, comps.uianimspr.scaley)
 end
-DefineDrawSystem({"menucursor", "uianimspr"}, DSMenuCursor)
+ECS:DefineDrawSystem({"menucursor", "uianimspr"}, DSMenuCursor)
 
 DSScreenEffect_Door = function(ent)
-	local secd = GetEntComp(ent, "screeneffect_door")
+	local secd = ECS:GetEntComp(ent, "screeneffect_door")
 	local perc = secd._timer_duration / secd.duration
 	if secd.opening == true then
 		perc = 1 - perc
@@ -96,16 +96,16 @@ DSScreenEffect_Door = function(ent)
 	end
 	Draw.rectangle(LAYER_SCREEN, "fill", 0, rvrs, 1280, nhei)
 end
-DefineDrawSystem({"screeneffect_door"}, DSScreenEffect_Door)
+ECS:DefineDrawSystem({"screeneffect_door"}, DSScreenEffect_Door)
 
 -- DSCollEntDebug = function(ent)
--- 	local c = GetEntComps(ent)
+-- 	local c = ECS:GetEntComps(ent)
 -- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x + c.collshape.x, c.pos.y + c.collshape.y, 0, 0.9, 0.9)
 -- end
--- DefineDrawSystem({"collid", "collshape", "pos"}, DSCollEntDebug)
+-- ECS:DefineDrawSystem({"collid", "collshape", "pos"}, DSCollEntDebug)
 
 -- DSCollMapDebug = function(ent)
--- 	local c = GetEntComps(ent)
+-- 	local c = ECS:GetEntComps(ent)
 -- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x, c.pos.y, 0, 0.9, 0.9)
 -- end
--- DefineDrawSystem({"maptile", "pos"}, DSCollMapDebug)
+-- ECS:DefineDrawSystem({"maptile", "pos"}, DSCollMapDebug)

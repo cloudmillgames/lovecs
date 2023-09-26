@@ -6,123 +6,129 @@
 -- ecsBucketsList: { bucket_id = comps_list, .. }
 -- ecsBucket: { bucket_id = {ent0id, ent1id, ..}, bucket_id = {ent2id, ent5id, ..}, .. }
 
-ecsEntityId = 1
-ecsBucketId = 1
-ecsEntities = {}
-ecsDeadEntities = {}
-ecsComponents = {}
-ecsUSystems = {}
-ecsDSystems = {}
-ecsBucketsList = {}
-ecsBuckets = {} 
+local ECS = {}
+ECS.__index = ECS
 
-function ecsNextEntityId()
-	ecsEntityId = ecsEntityId + 1
-	return ecsEntityId - 1
+function ECS.new()
+	local ecs = setmetatable({}, ECS)
+
+	ecs._EntityId = 1
+	ecs._BucketId = 1
+	ecs._Entities = {}
+	ecs._DeadEntities = {}
+	ecs._Components = {}
+	ecs._USystems = {}
+	ecs._DSystems = {}
+	ecs._BucketsList = {}
+	ecs._Buckets = {} 
+
+	return ecs
 end
 
-function ecsNextBucketId()
-	ecsBucketId = ecsBucketId + 1
-	return ecsBucketId - 1
+function ECS:_NextEntityId()
+	self._EntityId = self._EntityId + 1
+	return self._EntityId - 1
+end
+
+function ECS:_NextBucketId()
+	self._BucketId = self._BucketId + 1
+	return self._BucketId - 1
 end 
 
 -- Returns existing bucket id or new one
-function ecsGetBucket(comps_list)
-	local i, bl, found 
+function ECS:_GetBucket(comps_list)
+	local bl, found 
 	local buckid = nil
-	for i, c in ipairs(ecsBucketsList) do 
-		if ecsCompEq(comps_list, c) then 
+	for i, c in ipairs(self._BucketsList) do 
+		if self:_CompEq(comps_list, c) then 
 			buckid = i
 			break
-		end 
-	end 
-	if buckid == nil then 
-		buckid = ecsNextBucketId()
-		ecsBuckets[buckid] = {}
-		ecsBucketsList[buckid] = comps_list
+		end
+	end
+	if buckid == nil then
+		buckid = self:_NextBucketId()
+		self._Buckets[buckid] = {}
+		self._BucketsList[buckid] = comps_list
 	end
 	return buckid
 end 
 
 -- Get all compatible buckets to passed components list
-function ecsGetCompatBuckets(comps_list)
+function ECS:_GetCompatBuckets(comps_list)
 	-- bucket(subset) in comps_list(set)
 	local buckids = {}
-	for i, c in ipairs(ecsBucketsList) do 
-		if ecsCompIn(c, comps_list) then 
-			add(buckids, i) 
+	for i, c in ipairs(self._BucketsList) do
+		if self:_CompIn(c, comps_list) then
+			add(buckids, i)
 		end
-	end 
+	end
 	return buckids
-end 
+end
 
 -- Compare two component lists for exact match (non-sorted)
-function ecsCompEq(comp1, comp2)
-	if #comp1 ~= #comp2 then return false end 
+function ECS:_CompEq(comp1, comp2)
+	if #comp1 ~= #comp2 then return false end
 	for i = 1, #comp1 do
-		if comp1[i] ~= comp2[i] then 
-			return false 
-		end 
-	end 
+		if comp1[i] ~= comp2[i] then
+			return false
+		end
+	end
 	return true
 end 
 
-function ecsCompEqSort(comp1, comp2)
+function ECS:_CompEqSort(comp1, comp2)
 	table.sort(comp1)
 	table.sort(comp2)
-	return ecsCompEqual(comp1,comp2)
+	return self:_CompEq(comp1,comp2)
 end
 
-function ecsCreateComp(comp)
+function ECS:_CreateComp(comp)
 	if comp == nil then error("ecsCreateComp() nil component, probably wrong name") end
 	local newcomp = {}
-	for i, v in pairs(comp) do 
-		newcomp[i] = v 
+	for i, v in pairs(comp) do
+		newcomp[i] = v
 	end
 	return newcomp
-end 
+end
 
 -- Return true if subset is in set
-function ecsCompIn(subset, set)
+function ECS:_CompIn(subset, set)
 	if #subset > #set then return false end
-	local i, j, found
+	local found
 	found = 0
-	for i = 1, #subset do 
-		for j = 1, #set do 
+	for i = 1, #subset do
+		for j = 1, #set do
 			if subset[i] == set[j] then
 				found = found + 1
 				break
-			end 
+			end
 		end
 	end
 	return found == #subset
-end 
+end
 
-function ecsExecSystem(system)
-	local i, e
-	for i, e in ipairs(ecsBuckets[system.ent_buckid]) do
+function ECS:_ExecSystem(system)
+	for i, e in ipairs(self._Buckets[system.ent_buckid]) do
 		system.proc(e)
 	end
 end
 
-function ecsExecSystems(systems)
-	local i, s
-	for i, s in ipairs(systems) do 
-		ecsExecSystem(s)
+function ECS:_ExecSystems(systems)
+	for i, s in ipairs(systems) do
+		self:_ExecSystem(s)
 	end
 end
 
 -- This is a surface clone table only
-function ecsCloneTable(t)
+function ECS:_CloneTable(t)
 	local tt = {}
 	for i, v in pairs(t) do tt[i] = v end
 	return tt
 end
 
-function ecsRemEntFromBuckets(eid)
-	local i, j
-	for i=1,#ecsBuckets do
-		local cb = ecsBuckets[i]
+function ECS:_RemEntFromBuckets(eid)
+	for i=1,#self._Buckets do
+		local cb = self._Buckets[i]
 		for j=1,#cb do
 			if cb[j] == eid then
 				table.remove(cb, j)
@@ -132,121 +138,123 @@ function ecsRemEntFromBuckets(eid)
 	end
 end
 
-function ecsAddEntToBuckets(eid, comps_list)
-	local cbucks = ecsGetCompatBuckets(comps_list)
+function ECS:_AddEntToBuckets(eid, comps_list)
+	local cbucks = self:_GetCompatBuckets(comps_list)
 	for i=1,#cbucks do
-		table.insert(ecsBuckets[cbucks[i]], eid)
+		table.insert(self._Buckets[cbucks[i]], eid)
 	end
 end
 
-function ecsRebucketEnt(eid, oldcomps, newcomps)
-	ecsRemEntFromBuckets(eid)
-	ecsAddEntToBuckets(eid, newcomps)
+function ECS:_RebucketEnt(eid, oldcomps, newcomps)
+	self:_RemEntFromBuckets(eid)
+	self:_AddEntToBuckets(eid, newcomps)
 end
 
-function UpdateECS()
-	ecsExecSystems(ecsUSystems) 
+-----------------------------------------------------------
+-- public interface
+
+function ECS:UpdateECS()
+	self:_ExecSystems(self._USystems) 
 end 
 
-function DrawECS()
-	ecsExecSystems(ecsDSystems)
+function ECS:DrawECS()
+	self:_ExecSystems(self._DSystems)
 end
 
-function DefineComponent(name, comp_data) 
+function ECS:DefineComponent(name, comp_data)
 	assert(name, "Name invalid: "..tostring(name))
 	assert(comp_data, "Component data invalid: "..tostring(comp_data))
 	assert(type(name) == "string", "Name not string: "..type(name))
-	ecsComponents[name] = comp_data
+	self._Components[name] = comp_data
 end 
 
-function DefineUpdateSystem(comps_list, system_proc)
+function ECS:DefineUpdateSystem(comps_list, system_proc)
 	assert(comps_list, "Invalid comps list: "..tostring(comps_list))
 	assert(system_proc, "Invalid system proc: "..tostring(system_proc))
 	table.sort(comps_list)
-	local buckid = ecsGetBucket(comps_list)
-	add(ecsUSystems, {proc = system_proc, ent_buckid = buckid})
+	local buckid = self:_GetBucket(comps_list)
+	add(self._USystems, {proc = system_proc, ent_buckid = buckid})
 end 
 
-function DefineDrawSystem(comps_list, system_proc)
+function ECS:DefineDrawSystem(comps_list, system_proc)
 	assert(comps_list, "Invalid comps list: "..tostring(comps_list))
 	assert(system_proc, "Invalid system proc: "..tostring(system_proc))
 	table.sort(comps_list)
-	local buckid = ecsGetBucket(comps_list)
-	add(ecsDSystems, {proc = system_proc, ent_buckid = buckid})
+	local buckid = self:_GetBucket(comps_list)
+	add(self._DSystems, {proc = system_proc, ent_buckid = buckid})
 end
 
-function SpawnEntity(comps_list)
-	local eid = ecsNextEntityId()
+function ECS:SpawnEntity(comps_list)
+	local eid = self:_NextEntityId()
 	local comps_data = {} 
 	table.sort(comps_list)
-	local i
 	for i = 1, #comps_list do
-		comps_data[comps_list[i]] = ecsCreateComp(ecsComponents[comps_list[i]])
+		comps_data[comps_list[i]] = self:_CreateComp(self._Components[comps_list[i]])
 	end
-	ecsEntities[eid] = {
+	self._Entities[eid] = {
 		comps = comps_list,
 		cdata = comps_data
 	}
-	local cbucks = ecsGetCompatBuckets(comps_list)
+	local cbucks = self:_GetCompatBuckets(comps_list)
 	for i = 1, #cbucks do
-		add(ecsBuckets[cbucks[i]], eid)
+		add(self._Buckets[cbucks[i]], eid)
 	end 
 	return eid
 end
 
 -- returns a dict of comp->data
-function GetEntComps(eid)
+function ECS:GetEntComps(eid)
 	assert(eid, "Invalid entity given: "..tostring(eid))
-	return ecsEntities[eid].cdata
+	return self._Entities[eid].cdata
 end
 
 -- returns dict of component data
-function GetEntComp(eid, comp_name)
+function ECS:GetEntComp(eid, comp_name)
 	assert(eid, "Invalid entity given: "..tostring(eid))
 	assert(comp_name, "Invalid component name given: "..tostring(comp_name))
-	return ecsEntities[eid].cdata[comp_name]
+	return self._Entities[eid].cdata[comp_name]
 end
 
 -- returns bool to check whether entity has component
-function HasEntComp(eid, comp_name)
+function ECS:HasEntComp(eid, comp_name)
 	assert(eid, "Invalid entity given: "..tostring(eid))
-	return ecsEntities[eid].cdata[comp_name] ~= nil
+	return self._Entities[eid].cdata[comp_name] ~= nil
 end
 
 -- Adds new comp to entity, 1 comp/name
-function EntAddComp(eid, comp_name)
-	assert(not ecsEntities[eid].cdata[comp_name], "Ent has comp: "..tostring(comp_name))
-	assert(ecsComponents[comp_name], "Comp not defined: "..tostring(comp_name))
-	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
-	table.insert(ecsEntities[eid].comps, comp_name)
-	table.sort(ecsEntities[eid].comps)
-	ecsEntities[eid].cdata[comp_name] = ecsCreateComp(ecsComponents[comp_name])
-	ecsRebucketEnt(eid, oldcomps, ecsEntities[eid].comps)
+function ECS:EntAddComp(eid, comp_name)
+	assert(not self._Entities[eid].cdata[comp_name], "Ent has comp: "..tostring(comp_name))
+	assert(self._Components[comp_name], "Comp not defined: "..tostring(comp_name))
+	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
+	table.insert(self._Entities[eid].comps, comp_name)
+	table.sort(self._Entities[eid].comps)
+	self._Entities[eid].cdata[comp_name] = self:_CreateComp(self._Components[comp_name])
+	self:_RebucketEnt(eid, oldcomps, self._Entities[eid].comps)
 end
 
 -- Adds a list of new components to entity: comp_names = {"comp1", "comp2", ..}
-function EntAddComps(eid, comp_names)
+function ECS:EntAddComps(eid, comp_names)
 	assert(type(comp_names) == "table", "comp_names not a table: "..type(comp_names))
 
-	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
+	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
 	for _, new_comp in pairs(comp_names) do
-		assert(ecsEntities[eid].cdata[new_comp] == nil, "Ent has comp: "..tostring(new_comp))
-		assert(ecsComponents[new_comp], "Comp not defined: "..tostring(new_comp))
-		table.insert(ecsEntities[eid].comps, new_comp)
+		assert(self._Entities[eid].cdata[new_comp] == nil, "Ent has comp: "..tostring(new_comp))
+		assert(self._Components[new_comp], "Comp not defined: "..tostring(new_comp))
+		table.insert(self._Entities[eid].comps, new_comp)
 	end
 
-	table.sort(ecsEntities[eid].comps)
+	table.sort(self._Entities[eid].comps)
 
 	for _, new_comp in pairs(comp_names) do
-		ecsEntities[eid].cdata[new_comp] = ecsCreateComp(ecsComponents[new_comp])
+		self._Entities[eid].cdata[new_comp] = self:_CreateComp(self._Components[new_comp])
 	end
-	ecsRebucketEnt(eid, oldcomps, ecsEntities[eid].comps)
+	self:_RebucketEnt(eid, oldcomps, self._Entities[eid].comps)
 end
 
 -- Removes component from entity
-function EntRemComp(eid, comp_name)
-	assert(ecsEntities[eid].cdata[comp_name], "Ent doesn't have comp: "..tostring(comp_name))
-	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
+function ECS:EntRemComp(eid, comp_name)
+	assert(self._Entities[eid].cdata[comp_name], "Ent doesn't have comp: "..tostring(comp_name))
+	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
 	local newcomps = {}
 	for i=1,#oldcomps do
 		if oldcomps[i] ~= comp_name then
@@ -254,57 +262,56 @@ function EntRemComp(eid, comp_name)
 		end
 	end
 	-- no need to resort newcomps as its the same as oldcomps sans comp_name
-	ecsEntities[eid].comps = newcomps
-	ecsEntities[eid].cdata[comp_name] = nil
-	ecsRebucketEnt(eid, oldcomps, newcomps)
+	self._Entities[eid].comps = newcomps
+	self._Entities[eid].cdata[comp_name] = nil
+	self:_RebucketEnt(eid, oldcomps, newcomps)
 end
 
-function KillEntity(eid)
-	ecsRemEntFromBuckets(eid)
-	ecsEntities[eid] = nil
-	table.insert(ecsDeadEntities, eid)
+function ECS:KillEntity(eid)
+	self:_RemEntFromBuckets(eid)
+	self._Entities[eid] = nil
+	table.insert(self._DeadEntities, eid)
 end 
 
-function KillAllEntities()
-	local i, j
-	for i=1,#ecsBuckets do
-		ecsBuckets[i] = {}
+function ECS:KillAllEntities()
+	for i=1,#self._Buckets do
+		self._Buckets[i] = {}
 	end
-	for i in pairs(ecsEntities) do
-		table.insert(ecsDeadEntities, ecsEntities[i])
+	for i in pairs(self._Entities) do
+		table.insert(self._DeadEntities, self._Entities[i])
 	end
-	ecsEntities = {}
+	self._Entities = {}
 	--ecsEntityId = 1 this breaks collision and other stuff somehow
 end
 
-function IsDeadEntity(eid)
-	for i=1,#ecsDeadEntities do
-		if ecsDeadEntities[i] == eid then
+function ECS:IsDeadEntity(eid)
+	for i=1,#self._DeadEntities do
+		if self._DeadEntities[i] == eid then
 			return true
 		end
 	end
 	return false
 end
 
-function IsAliveEntity(eid)
-	return not IsDeadEntity(eid)
+function ECS:IsAliveEntity(eid)
+	return not self:IsDeadEntity(eid)
 end
 
 -- Create a comp as data
-function CreateComp(comp_name)
-	for cn in pairs(ecsComponents) do
+function ECS:CreateComp(comp_name)
+	for cn in pairs(self._Components) do
 		if cn == comp_name then
-			return ecsCreateComp(ecsComponents[cn])
+			return self:_CreateComp(self._Components[cn])
 		end
 	end
 	assert(false) -- bad comp name
 end
 
 -- expensive, only use for singleton systems
-function CollectEntitiesWith(comps)
+function ECS:CollectEntitiesWith(comps)
 	local ents={}
-	for i in pairs(ecsEntities) do
-		if ecsCompIn(comps, ecsEntities[i].comps) then
+	for i in pairs(self._Entities) do
+		if self:_CompIn(comps, self._Entities[i].comps) then
 			add(ents, i)
 		end
 	end
@@ -312,9 +319,9 @@ function CollectEntitiesWith(comps)
 end
 
 -- expensive, returns first entity found that has comps list
-function GetFirstEntityWith(comps)
-	for i in pairs(ecsEntities) do
-		if ecsCompIn(comps, ecsEntities[i].comps) then
+function ECS:GetFirstEntityWith(comps)
+	for i in pairs(self._Entities) do
+		if self:_CompIn(comps, self._Entities[i].comps) then
 			return i
 		end
 	end
@@ -322,10 +329,12 @@ function GetFirstEntityWith(comps)
 end
 
 -- count how many entities are alive
-function CountLiveEntities()
+function ECS:CountLiveEntities()
 	local c=0
-	for i in pairs(ecsEntities) do
+	for i in pairs(self._Entities) do
 		c=c+1
 	end
 	return c
 end
+
+return ECS

@@ -5,16 +5,16 @@ USInitGame = function(ent)
 	-- No need to kill all entities as level screen transition does it
 
 	local def_fps = function()
-		local te = SpawnEntity({"pos", "text", "fpscounter"})
-		local pc = GetEntComp(te, "pos")
+		local te = ECS:SpawnEntity({"pos", "text", "fpscounter"})
+		local pc = ECS:GetEntComp(te, "pos")
 		pc.x = 1230
 		pc.y = 2
-		local tc = GetEntComp(te, "text")
+		local tc = ECS:GetEntComp(te, "text")
 		tc.text = "<FPS>"
 	end
 	local def_goal = function()
-		local se = SpawnEntity({"pos", "animspr", "collid", "collshape", "criticaltarget"})
-		local c = GetEntComps(se)
+		local se = ECS:SpawnEntity({"pos", "animspr", "collid", "collshape", "criticaltarget"})
+		local c = ECS:GetEntComps(se)
 		
 		c.pos.x = MAP_TO_COORD_X(12)
 		c.pos.y = MAP_TO_COORD_Y(13)
@@ -36,19 +36,19 @@ USInitGame = function(ent)
 	end
 	local def_player = function()
 		local tank = Construct_Tank(PLAYER_COLOR, LAYER_PLAYER)
-		EntAddComp(tank, "player")
-		local comps = GetEntComps(tank)
+		ECS:EntAddComp(tank, "player")
+		local comps = ECS:GetEntComps(tank)
 		comps.pos.x = MAP_TO_COORD_X(10)
 		comps.pos.y = MAP_TO_COORD_Y(13)
 	end
 	local def_bg = function()
 		-- Arena background
-		local se = SpawnEntity({"arena_bg"})
+		local se = ECS:SpawnEntity({"arena_bg"})
 		-- Arena boundaries
 		local bounds = {}
 		for i=1,4 do
-			local be = SpawnEntity({"dbgname", "pos", "collshape", "collid"})
-			local comps = GetEntComps(be)
+			local be = ECS:SpawnEntity({"dbgname", "pos", "collshape", "collid"})
+			local comps = ECS:GetEntComps(be)
 
 			comps.dbgname.name = "Bound_"
 
@@ -65,25 +65,25 @@ USInitGame = function(ent)
 			w=SC_MAP_RECT[3] + SC_TILE_WIDTH * 2,
 			h=SC_MAP_RECT[4] + SC_TILE_HEIGHT * 2}
 
-		local up_shape = GetEntComp(bounds[UP], "collshape")
+		local up_shape = ECS:GetEntComp(bounds[UP], "collshape")
 		up_shape.x = bound_rect.x
 		up_shape.y = bound_rect.y
 		up_shape.w = bound_rect.w
 		up_shape.h = SC_TILE_HEIGHT
 
-		local right_shape = GetEntComp(bounds[RIGHT], "collshape")
+		local right_shape = ECS:GetEntComp(bounds[RIGHT], "collshape")
 		right_shape.x = bound_rect.x + bound_rect.w - SC_TILE_WIDTH
 		right_shape.y = bound_rect.y + SC_TILE_HEIGHT
 		right_shape.w = SC_TILE_WIDTH
 		right_shape.h = bound_rect.h - SC_TILE_HEIGHT * 2
 
-		local down_shape = GetEntComp(bounds[DOWN], "collshape")
+		local down_shape = ECS:GetEntComp(bounds[DOWN], "collshape")
 		down_shape.x = bound_rect.x
 		down_shape.y = bound_rect.y + bound_rect.h - SC_TILE_HEIGHT
 		down_shape.w = bound_rect.w
 		down_shape.h = SC_TILE_HEIGHT
 
-		local left_shape = GetEntComp(bounds[LEFT], "collshape")
+		local left_shape = ECS:GetEntComp(bounds[LEFT], "collshape")
 		left_shape.x = bound_rect.x
 		left_shape.y = bound_rect.y + SC_TILE_HEIGHT
 		left_shape.w = SC_TILE_WIDTH
@@ -91,8 +91,8 @@ USInitGame = function(ent)
 	end
 	local def_map = function(mapnum)
 		-- Map collider
-		local collmap_ent = SpawnEntity({"collmap"})
-		local collmap = GetEntComp(collmap_ent, "collmap")
+		local collmap_ent = ECS:SpawnEntity({"collmap"})
+		local collmap = ECS:GetEntComp(collmap_ent, "collmap")
 		collmap.tile_size = {8 * SCALE, 8 * SCALE}
 		collmap.map_rect = makeRect(SC_MAP_RECT[1], SC_MAP_RECT[2], SC_MAP_RECT[3], SC_MAP_RECT[4])
 		collmap.columns = MAP_TILES_COLUMNS * 2
@@ -108,10 +108,10 @@ USInitGame = function(ent)
 				add(collmap.matrix, m[idx])
 				-- tile
 				if m[idx] ~= 0 then
-					local se = SpawnEntity({"dbgname", "maptile", "collid", "pos"})
+					local se = ECS:SpawnEntity({"dbgname", "maptile", "collid", "pos"})
 					collmap.ent_matrix[idx] = se
 
-					local comps = GetEntComps(se)
+					local comps = ECS:GetEntComps(se)
 
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
 
@@ -139,8 +139,8 @@ USInitGame = function(ent)
 		print(tl)
 	end
 	local def_screen_effect = function()
-		local se = SpawnEntity({"screeneffect_door"})
-		local c = GetEntComp(se, "screeneffect_door")
+		local se = ECS:SpawnEntity({"screeneffect_door"})
+		local c = ECS:GetEntComp(se, "screeneffect_door")
 		c.duration = 0.35
 		c.stay = 0
 		c.rect_color = ARENA_BG_COLOR
@@ -155,13 +155,13 @@ USInitGame = function(ent)
 	def_screen_effect()
 	Construct_SpawnDirector()
 	-- init only runs once
-	KillEntity(ent)
+	ECS:KillEntity(ent)
 end
-DefineUpdateSystem({"initgame"}, USInitGame)
+ECS:DefineUpdateSystem({"initgame"}, USInitGame)
 
 -- Reads player movement input and plays tank engine sounds
 USPlayerUpdate = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	if comps.tank.moving == 0 then
 		-- a direct input check leads to left/right overwriting up/down in control
 		-- we solve this by favoring newest cursor control and using that as our new direction
@@ -195,16 +195,16 @@ USPlayerUpdate = function(ent)
 		Res.SoundEffects["tank_moving"]:play()
 	end
 end
-DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
+ECS:DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 
 USTankTurret = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	if c.tankturret.trigger then
 		if c.tankturret._timer_cooldown == 0 then
 			if #c.tankturret._live_shells < c.tankturret.max_live_shells then
-				local is_player = HasEntComp(ent, "player")
+				local is_player = ECS:HasEntComp(ent, "player")
 				local shell = Fire_Shell(ent, is_player)
-				if IsDeadEntity(shell) == false then
+				if ECS:IsDeadEntity(shell) == false then
 					table.insert(c.tankturret._live_shells, shell)
 				end
 				c.tankturret._timer_cooldown = c.tankturret.cooldown
@@ -214,52 +214,52 @@ USTankTurret = function(ent)
 	c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
 	c.tankturret.trigger = false
 end
-DefineUpdateSystem({"tankturret", "dir", "pos"}, USTankTurret)
+ECS:DefineUpdateSystem({"tankturret", "dir", "pos"}, USTankTurret)
 
 -- Reads player fire input and applies turret cooldown, fires shell
 USPlayerTankTurret = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	if btn.z >= 1 then
 		c.tankturret.trigger = true
 	end
 end
-DefineUpdateSystem({"player", "tankturret"}, USPlayerTankTurret)
+ECS:DefineUpdateSystem({"player", "tankturret"}, USPlayerTankTurret)
 
 -- Tracks live shells and updates counters
 USTurretUpdate = function(ent)
-	local tt = GetEntComp(ent, "tankturret")
+	local tt = ECS:GetEntComp(ent, "tankturret")
 	local new_live_shells = {}
 	for i=1,#tt._live_shells do
-		if IsDeadEntity(tt._live_shells[i]) == false then
+		if ECS:IsDeadEntity(tt._live_shells[i]) == false then
 			table.insert(new_live_shells, tt._live_shells[i])
 		end
 	end
 	tt._live_shells = new_live_shells
 end
-DefineUpdateSystem({"tankturret"}, USTurretUpdate)
+ECS:DefineUpdateSystem({"tankturret"}, USTurretUpdate)
 
 -- Moves tank shell
 USTankShell = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	local mov = GetMovementFromDir(c.dir.dir)
 	-- Assumes speed to be SCALEd already
 	c.pos.x = c.pos.x + (mov.x * c.projectile.speed * DeltaTime)
 	c.pos.y = c.pos.y + (mov.y * c.projectile.speed * DeltaTime)
 end
-DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
+ECS:DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
 
 -- Tank shell collision handler
 USShellCollision = function(ent)
-	local c = GetEntComps(ent)
-	local player_shell = HasEntComp(ent, "playershell")
+	local c = ECS:GetEntComps(ent)
+	local player_shell = ECS:HasEntComp(ent, "playershell")
 	local events = c.collid.events
 	for i=1,#events do
 		local other = events[i][1]
 		if other == ent then
 			other = events[i][2]
 		end
-		if IsDeadEntity(other) == false then
-			local other_collid = GetEntComp(other, "collid")
+		if ECS:IsDeadEntity(other) == false then
+			local other_collid = ECS:GetEntComp(other, "collid")
 			local other_layer = other_collid.layer
 			if other_layer == LAYER_MAP then -- map tiles
 				local tile_type = other_collid.custom
@@ -268,60 +268,60 @@ USShellCollision = function(ent)
 					Small_Explosion(c.pos)
 					PlaySound("brick_destroy")
 
-					local maptile = GetEntComp(other_collid.ent, "maptile")
-					local clearer = SpawnEntity({"maptile_clear"})
-					local cmc = GetEntComp(clearer, "maptile_clear")
+					local maptile = ECS:GetEntComp(other_collid.ent, "maptile")
+					local clearer = ECS:SpawnEntity({"maptile_clear"})
+					local cmc = ECS:GetEntComp(clearer, "maptile_clear")
 					cmc.collmap = maptile.collmap
 					cmc.column = maptile.column
 					cmc.row = maptile.row
 
-					KillEntity(other)
-					KillEntity(ent)
+					ECS:KillEntity(other)
+					ECS:KillEntity(ent)
 				elseif tile_type == TILE_STONE then
 					Small_Explosion(c.pos)
 					PlaySound("solid_impact")
-					KillEntity(ent)
+					ECS:KillEntity(ent)
 				end
 			elseif other_layer == LAYER_BG then	-- map boundaries
 				Small_Explosion(c.pos)
 				if player_shell then
 					PlaySound("solid_impact")
 				end
-				KillEntity(ent)
+				ECS:KillEntity(ent)
 			elseif other_layer == LAYER_OBJECTS then
-				if HasEntComp(other, "criticaltarget") then
+				if ECS:HasEntComp(other, "criticaltarget") then
 					-- Insta-death
-					local critdeath = SpawnEntity({"criticaldeath"})
-					local cdc = GetEntComps(critdeath)
+					local critdeath = ECS:SpawnEntity({"criticaldeath"})
+					local cdc = ECS:GetEntComps(critdeath)
 					cdc.criticaldeath.critical_target = other
 					Small_Explosion(c.pos)
-					KillEntity(ent)
+					ECS:KillEntity(ent)
 				end
 			elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
 				-- Silently annihilate both
-				KillEntity(other)
-				KillEntity(ent)
+				ECS:KillEntity(other)
+				ECS:KillEntity(ent)
 			elseif player_shell == true and other_layer == LAYER_TANKS then
 				-- enemy tank impact
 				Small_Explosion(c.pos)
 				PlaySound("big_explosion")
-				local othercomps = GetEntComps(other)
+				local othercomps = ECS:GetEntComps(other)
 				Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
-				KillEntity(other)
-				KillEntity(ent)
+				ECS:KillEntity(other)
+				ECS:KillEntity(ent)
 				-- TODO scoring
 			elseif player_shell == false and other_layer == LAYER_PLAYER then
 				Small_Explosion(c.pos)
-				if HasEntComp(other, "player") then
+				if ECS:HasEntComp(other, "player") then
 					-- player tank impact
 					PlaySound("big_explosion")
-					local othercomps = GetEntComps(other)
+					local othercomps = ECS:GetEntComps(other)
 					Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
-					KillEntity(ent)
-					KillEntity(other)
+					ECS:KillEntity(ent)
+					ECS:KillEntity(other)
 					-- Lose a live or gameover
-					local playerdeath = SpawnEntity({"playerdeath"})
-					local pc = GetEntComps(playerdeath)
+					local playerdeath = ECS:SpawnEntity({"playerdeath"})
+					local pc = ECS:GetEntComps(playerdeath)
 					pc.playerdeath.player = other
 				else
 					error("There shouldn't be another entity in player layer that is not player at the moment")
@@ -330,13 +330,13 @@ USShellCollision = function(ent)
 		end
 	end
 end
-DefineUpdateSystem({"projectile", "pos", "dir", "collshape", "collid"}, USShellCollision)
+ECS:DefineUpdateSystem({"projectile", "pos", "dir", "collshape", "collid"}, USShellCollision)
 
 -- Handles tank throttle preprocessing for direction and motion sensing to detect movement blockers
 USTankThrottle = function(ent)
-	local comps = GetEntComps(ent)
-	local is_player = HasEntComp(ent, "player")
-	local is_enemy = HasEntComp(ent, "enemycontrol")
+	local comps = ECS:GetEntComps(ent)
+	local is_player = ECS:HasEntComp(ent, "player")
+	local is_enemy = ECS:HasEntComp(ent, "enemycontrol")
 
 	if is_player or is_enemy then
 		if comps.tank.moving == 0 then
@@ -350,7 +350,7 @@ USTankThrottle = function(ent)
 			if comps.tank.throttle then
 				-- Check motion sensor for clear movement
 				local sensor = comps.motionsensor4.sensors[comps.dir.dir]
-				local sensor_comps = GetEntComps(sensor)
+				local sensor_comps = ECS:GetEntComps(sensor)
 				if #sensor_comps.collid.events == 0 then
 					comps.tank.moving = TANK_STEP
 				end
@@ -358,11 +358,11 @@ USTankThrottle = function(ent)
 		end
 	end
 end
-DefineUpdateSystem({"dir", "tank", "motionsensor4"}, USTankThrottle)
+ECS:DefineUpdateSystem({"dir", "tank", "motionsensor4"}, USTankThrottle)
 
 -- Updates tank sprite animation and applies actual throttle movement with stepping and rounding
 USTankUpdate = function(ent)
-	local comps = GetEntComps(ent)
+	local comps = ECS:GetEntComps(ent)
 	-- Update frame to match direction and chain tick
 	local tt = comps.tank.type
 	local td = comps.dir.dir
@@ -398,27 +398,27 @@ USTankUpdate = function(ent)
 		end
 	end
 end
-DefineUpdateSystem({"tank", "animspr", "dir", "pos"}, USTankUpdate)
+ECS:DefineUpdateSystem({"tank", "animspr", "dir", "pos"}, USTankUpdate)
 
 -- Kills entity if it leaves predefined out of bounds area 1000 pixels out of screen bounds
 USOutOfBoundsKill = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	if c.pos.x > SC_WIDTH + 1000 or c.pos.x < -1000 or c.pos.y > SC_HEIGHT + 1000 or c.pos.y < -1000 then
-		KillEntity(ent)
+		ECS:KillEntity(ent)
 	end
 end
-DefineUpdateSystem({"outofbounds_kill", "pos"}, USOutOfBoundsKill)
+ECS:DefineUpdateSystem({"outofbounds_kill", "pos"}, USOutOfBoundsKill)
 
 USSpawnDirector = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	if c.spawndirector.active then
 		local sd = c.spawndirector
 
 		-- Update alive units tally
 		local alive_count = 0
-		local enemy_tanks = CollectEntitiesWith({"tank", "enemy"})
+		local enemy_tanks = ECS:CollectEntitiesWith({"tank", "enemy"})
 		for i=1,#enemy_tanks do
-			if IsDeadEntity(enemy_tanks[i]) == false then
+			if ECS:IsDeadEntity(enemy_tanks[i]) == false then
 				alive_count = alive_count + 1
 			end
 		end
@@ -430,7 +430,7 @@ USSpawnDirector = function(ent)
 			if sd.spawns > 0 then
 				if alive_count < sd.max_alive then
 					local sensor_ent = sd.sensors[sd._current_zone]
-					local sensor = GetEntComp(sensor_ent, "collid")
+					local sensor = ECS:GetEntComp(sensor_ent, "collid")
 					if #sensor.events == 0 then
 						-- no units in spawn zone -> we spawn
 						sd.spawns = sd.spawns - 1
@@ -449,16 +449,16 @@ USSpawnDirector = function(ent)
 			else
 				if alive_count == 0 then
 					Msging.dispatchEntity(sd.msg_channel, sd.msg_on_finish)
-					KillEntity(ent)
+					ECS:KillEntity(ent)
 				end
 			end
 		end
 	end
 end
-DefineUpdateSystem({"spawndirector"}, USSpawnDirector)
+ECS:DefineUpdateSystem({"spawndirector"}, USSpawnDirector)
 
 USEnemyControl = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	-- movement
 	if c.enemycontrol._move_timer <= 0.0 then
 		-- time to change movement
@@ -487,25 +487,25 @@ USEnemyControl = function(ent)
 		c.tankturret.trigger = true
 	end
 end
-DefineUpdateSystem({"enemycontrol", "tank", "tankturret", "dir"}, USEnemyControl)
+ECS:DefineUpdateSystem({"enemycontrol", "tank", "tankturret", "dir"}, USEnemyControl)
 
 USCollisionMap_TileClear = function(ent)
-	local cmc = GetEntComp(ent, "maptile_clear")
-	if IsAliveEntity(cmc.collmap) then
-		local collmap = GetEntComp(cmc.collmap, "collmap")
+	local cmc = ECS:GetEntComp(ent, "maptile_clear")
+	if ECS:IsAliveEntity(cmc.collmap) then
+		local collmap = ECS:GetEntComp(cmc.collmap, "collmap")
 		local ix = ((cmc.row - 1) * collmap.columns) + cmc.column
 		collmap.matrix[ix] = 0
 	end
-	KillEntity(ent)
+	ECS:KillEntity(ent)
 end
-DefineUpdateSystem({"maptile_clear"}, USCollisionMap_TileClear)
+ECS:DefineUpdateSystem({"maptile_clear"}, USCollisionMap_TileClear)
 
 USCriticalDeath = function(ent)
 	-- Critical death procedure
-	local c = GetEntComps(ent)
-	if IsAliveEntity(c.criticaldeath.critical_target) then
+	local c = ECS:GetEntComps(ent)
+	if ECS:IsAliveEntity(c.criticaldeath.critical_target) then
 		local cde = c.criticaldeath.critical_target
-		local cdc = GetEntComps(cde)
+		local cdc = ECS:GetEntComps(cde)
 
 		PlaySound("base_explosion")
 		local explode = Big_Explosion({x=cdc.pos.x + 8 * SCALE, y=cdc.pos.y + 8 * SCALE})
@@ -513,17 +513,17 @@ USCriticalDeath = function(ent)
 		-- Critical target frame to destroyed
 		cdc.animspr.curr_frame = 6
 		-- Remove critical target collider
-		EntRemComp(cde, "collid")
-		EntRemComp(cde, "collshape")
+		ECS:EntRemComp(cde, "collid")
+		ECS:EntRemComp(cde, "collshape")
 		Trigger_GameOver()
 	end
-	KillEntity(ent)
+	ECS:KillEntity(ent)
 end
-DefineUpdateSystem({"criticaldeath"}, USCriticalDeath)
+ECS:DefineUpdateSystem({"criticaldeath"}, USCriticalDeath)
 
 USGameOver = function(ent)
-	local popup = SpawnEntity({"spr", "pos", "move4", "delayedfunc"})
-	local pc = GetEntComps(popup)
+	local popup = ECS:SpawnEntity({"spr", "pos", "move4", "delayedfunc"})
+	local pc = ECS:GetEntComps(popup)
 	
 	pc.spr.spritesheet = "small_gameover"
 	pc.spr.scalex = SCALE
@@ -540,20 +540,20 @@ USGameOver = function(ent)
 	pc.delayedfunc.delay = 4
 	pc.delayedfunc.func = Construct_GameOver
 
-	KillEntity(ent)
+	ECS:KillEntity(ent)
 end
-DefineUpdateSystem({"gameover"}, USGameOver)
+ECS:DefineUpdateSystem({"gameover"}, USGameOver)
 
 USPlayerDeath = function(ent)
-	local c = GetEntComps(ent)
+	local c = ECS:GetEntComps(ent)
 	-- local player = c.playerdeath.player
-	-- local pc = GetEntComps(player)
+	-- local pc = ECS:GetEntComps(player)
 	-- if pc.player.lives > 0 then
 	-- 	pc.player.lives = pc.player.lives - 1
 	-- 	-- TODO respawn
 	-- else
 	-- 	Trigger_GameOver()
 	-- end
-	KillEntity(ent)
+	ECS:KillEntity(ent)
 end
-DefineUpdateSystem({"playerdeath"}, USPlayerDeath)
+ECS:DefineUpdateSystem({"playerdeath"}, USPlayerDeath)

@@ -15,13 +15,13 @@ Msging.Receiver = {
     channels = {Msging.CHANNEL},  -- channels this receiver wants to listen on
     msgs = {}   -- msgs incoming filled by Msging system {msg="name", data=data}, must be cleared manually
 }
-DefineComponent("msg_receiver", Msging.Receiver)
+ECS:DefineComponent("msg_receiver", Msging.Receiver)
 
 Msging.Dispatcher = {
     dispatch = {},      -- expects {channel="name", msg="name", data=data} per msg, messages dispatched next frame update. Cleared by Msging system once processed
     kill_after_dispatch = false  -- kill self entity once a msg is dispatched from this dispatcher
 }
-DefineComponent("msg_dispatcher", Msging.Dispatcher)
+ECS:DefineComponent("msg_dispatcher", Msging.Dispatcher)
 
 -- queue channel-msg-data in dispatcher component
 Msging.dispatch = function(dispatcher, _channel, _msg, _data)
@@ -35,8 +35,8 @@ end
 Msging.dispatchEntity = function(_channel, _msg, _data)
     assert(type(_channel) == "string")
     assert(type(_msg) == "string")
-    local e = SpawnEntity({"msg_dispatcher"})
-    local c = GetEntComp(e, "msg_dispatcher")
+    local e = ECS:SpawnEntity({"msg_dispatcher"})
+    local c = ECS:GetEntComp(e, "msg_dispatcher")
     c.kill_after_dispatch = true
     Msging.dispatch(c, _channel, _msg, _data)
 end
@@ -54,13 +54,13 @@ Msging.received_msg = function(receiver, _msg)
 end
 
 Msging.run = function()
-    local dispatchers = CollectEntitiesWith({"msg_dispatcher"})
-    local receivers = CollectEntitiesWith({"msg_receiver"})
+    local dispatchers = ECS:CollectEntitiesWith({"msg_dispatcher"})
+    local receivers = ECS:CollectEntitiesWith({"msg_receiver"})
 
     local channel_to_receivers = {} -- collects receiver entities by channel name
     for i=1,#receivers do
         local rec_ent = receivers[i]
-        local comp = GetEntComp(rec_ent, "msg_receiver")
+        local comp = ECS:GetEntComp(rec_ent, "msg_receiver")
         assert(type(comp.channels) == "table")
         assert(type(comp.msgs) == "table")
         for j=1,#comp.channels do
@@ -74,7 +74,7 @@ Msging.run = function()
 
     for i=1,#dispatchers do
         local dsp_ent = dispatchers[i]
-        local comp = GetEntComp(dsp_ent, "msg_dispatcher")
+        local comp = ECS:GetEntComp(dsp_ent, "msg_dispatcher")
         assert(type(comp.dispatch) == "table")
         for j=1,#comp.dispatch do
             local dmsg = comp.dispatch[j]
@@ -83,11 +83,11 @@ Msging.run = function()
             if channel_to_receivers[dmsg.channel] ~= nil then
                 for k=1,#channel_to_receivers[dmsg.channel] do
                     local rec_ent = channel_to_receivers[dmsg.channel][k]
-                    local rec = GetEntComp(rec_ent, "msg_receiver")
+                    local rec = ECS:GetEntComp(rec_ent, "msg_receiver")
                     table.insert(rec.msgs, {msg=dmsg.msg, data=dmsg.data})
                 end
                 if comp.kill_after_dispatch == true then
-                    KillEntity(dsp_ent)
+                    ECS:KillEntity(dsp_ent)
                 end
             else
                 print("Msging: msg-dispatch to channel no one listening on: "..dmsg.channel)

@@ -2,24 +2,24 @@
 
 -- Start game screen
 CInitStart = {}
-DefineComponent("initstart", CInitStart)
+ECS:DefineComponent("initstart", CInitStart)
 
 -- Used to init game, should remove itself when run
 CInitGame = {}
-DefineComponent("initgame", CInitGame)
+ECS:DefineComponent("initgame", CInitGame)
 
 -- a direction of 4: 1 (up), 2 (right), 3(down), 4 (left)
 CDir = {
 	dir = 1
 }
-DefineComponent("dir", CDir)
+ECS:DefineComponent("dir", CDir)
 
 -- a string
 CText = {
 	text = "",
 	scale = 1
 }
-DefineComponent("text", CText)
+ECS:DefineComponent("text", CText)
 
 -- an image that gets drawn
 CImg = {
@@ -28,29 +28,29 @@ CImg = {
 	scalex=1,
 	scaley=1
 }
-DefineComponent("img", CImg)
+ECS:DefineComponent("img", CImg)
 
 -- identify entity as player
 CPlayer = {
 	lives = 3
 }
-DefineComponent("player", CPlayer)
+ECS:DefineComponent("player", CPlayer)
 
 -- indicates a player death event
 CPlayerDeath = {
 	player = -1		-- player entity that died
 }
-DefineComponent("playerdeath", CPlayerDeath)
+ECS:DefineComponent("playerdeath", CPlayerDeath)
 
 -- identify entity as enemy
 CEnemy = {
 }
-DefineComponent("enemy", CEnemy)
+ECS:DefineComponent("enemy", CEnemy)
 
 -- identify shell as players
 CPlayerShell = {
 }
-DefineComponent("playershell", CPlayerShell)
+ECS:DefineComponent("playershell", CPlayerShell)
 
 -- A single frame sprite
 CSpr = {
@@ -62,7 +62,7 @@ CSpr = {
 	color = nil,
 	layer = 0,
 }
-DefineComponent("spr", CSpr)
+ECS:DefineComponent("spr", CSpr)
 
 -- an animated sprite
 CAnimSpr = {
@@ -76,14 +76,14 @@ CAnimSpr = {
 	frame_start = 1,-- what's first frame in spritesheet
 	frame_end = -1	-- < 1 means last frame
 }
-DefineComponent("animspr", CAnimSpr)
+ECS:DefineComponent("animspr", CAnimSpr)
 
 -- animate sprite from first to last frame once then kills self entity
 CAnimSpr_OneCycle = {
 	frametime = 0.25,	-- time each frame lasts in seconds
 	_timer = 0.0
 }
-DefineComponent("animspr_onecycle", CAnimSpr_OneCycle)
+ECS:DefineComponent("animspr_onecycle", CAnimSpr_OneCycle)
 
 -- animate sprite pingpong number of cycles then kills self if cycles == 0
 CAnimSpr_PingPong = {
@@ -92,7 +92,7 @@ CAnimSpr_PingPong = {
 	_direction = 1,		-- 1 or -1
 	cycles = 5,			-- pingpong count, -1 forever
 }
-DefineComponent("animspr_pingpong", CAnimSpr_PingPong)
+ECS:DefineComponent("animspr_pingpong", CAnimSpr_PingPong)
 
 -- an animator for the animated sprite that cycles all frames
 -- Deprecated: this counts in frames not DeltaTime
@@ -100,11 +100,11 @@ CAnimSpr_Cycle = {
 	frametime=1,
 	_framecount=0	-- used to count frame time
 }
-DefineComponent("animspr_cycle", CAnimSpr_Cycle)
+ECS:DefineComponent("animspr_cycle", CAnimSpr_Cycle)
 
 -- Battlecity arena
 CArenaBG = {}
-DefineComponent("arena_bg", CArenaBG)
+ECS:DefineComponent("arena_bg", CArenaBG)
 
 -- All tanks have this comp
 CTank = {
@@ -118,7 +118,7 @@ CTank = {
 	move_delta_x = 0,	-- used to fix tank movement to TANK_STEPs
 	move_delta_y = 0,
 }
-DefineComponent("tank", CTank)
+ECS:DefineComponent("tank", CTank)
 
 CMapTile = {
 	type = 1,
@@ -126,7 +126,7 @@ CMapTile = {
 	column = 0,		-- Where in map matrix
 	row = 0
 }
-DefineComponent("maptile", CMapTile)
+ECS:DefineComponent("maptile", CMapTile)
 
 -- Clear a tile from collision map associated with a maptile via column, row
 CCollisionMap_TileClear = {
@@ -134,19 +134,19 @@ CCollisionMap_TileClear = {
 	column = 0,
 	row = 0
 }
-DefineComponent("maptile_clear", CCollisionMap_TileClear)
+ECS:DefineComponent("maptile_clear", CCollisionMap_TileClear)
 
 CFPSCounter = {
 	frame_timer = 0,
 	frame_count = 0,
 }
-DefineComponent("fpscounter", CFPSCounter)
+ECS:DefineComponent("fpscounter", CFPSCounter)
 
 -- Links this entity's lifetime to a parent, it dies when parent dies
 CChild = {
 	parent = -1
 }
-DefineComponent("child", CChild)
+ECS:DefineComponent("child", CChild)
 
 -- Follow position of another entity with offset
 CPosLink = {
@@ -154,19 +154,19 @@ CPosLink = {
 	offsetx = 0,
 	offsety = 0
 }
-DefineComponent("poslink", CPosLink)
+ECS:DefineComponent("poslink", CPosLink)
 
 -- Identifies entity as a collision sensor shape (used for MotionSensor)
 CCollSensor = {
 }
-DefineComponent("collsensor", CCollSensor)
+ECS:DefineComponent("collsensor", CCollSensor)
 
 -- References 4 sensors each in the 4 cartesian directions (no diagonals)
 -- Use to check whether you can move in that direction. UP RIGHT DOWN LEFT
 CMotionSensor4 = {
 	sensors = {}
 }
-DefineComponent("motionsensor4", CMotionSensor4)
+ECS:DefineComponent("motionsensor4", CMotionSensor4)
 
 -- Move an entity with position towards a specific position in given duration
 CMove4 = {
@@ -178,20 +178,20 @@ CMove4 = {
 	_originx = 0,
 	_originy = 0
 }
-DefineComponent("move4", CMove4)
+ECS:DefineComponent("move4", CMove4)
 
 CBmpText = {
     text = "",
     color = nil
 }
-DefineComponent("bmptext", CBmpText)
+ECS:DefineComponent("bmptext", CBmpText)
 
 CMenuCursor = {
     places = {},    -- each pair of {x,y} is a menu item, index starts at 1
     current = 1,    -- default to first place
     funcs = {},     -- What to call when Z is pressed on menu cursor
 }
-DefineComponent("menucursor", CMenuCursor)
+ECS:DefineComponent("menucursor", CMenuCursor)
 
 -- Draws a cycling animated sprite to be used as UI cursor
 CUIAnimSprite = {
@@ -205,14 +205,14 @@ CUIAnimSprite = {
     frametime = 0,
     _timer = 0
 }
-DefineComponent("uianimspr", CUIAnimSprite)
+ECS:DefineComponent("uianimspr", CUIAnimSprite)
 
 -- Set 'func' to function you want, it will be called once after delay
 CDelayedFunc = {
     delay = 0,
     func = nil
 }
-DefineComponent("delayedfunc", CDelayedFunc)
+ECS:DefineComponent("delayedfunc", CDelayedFunc)
 
 -- Calls function when button is pressed (==1)
 CButtonFunc = {
@@ -220,7 +220,7 @@ CButtonFunc = {
 	func = nil,
 	kill_after = -1,	-- how many runs to kill self entity after? -1 means do not kill, 1 is once
 }
-DefineComponent("buttonfunc", CButtonFunc)
+ECS:DefineComponent("buttonfunc", CButtonFunc)
 
 CScreenEffect_Door = {
     duration = 1,   -- duration of door effect
@@ -230,7 +230,7 @@ CScreenEffect_Door = {
     _timer_duration = 0,
     _timer_stay = 0
 }
-DefineComponent("screeneffect_door", CScreenEffect_Door)
+ECS:DefineComponent("screeneffect_door", CScreenEffect_Door)
 
 CTankTurret = {
 	trigger = false,		-- if true turret attempts fire, reset after check to false
@@ -240,17 +240,17 @@ CTankTurret = {
 	max_live_shells = 1,	-- how many shells allowed to be alive
 	_live_shells = {}		-- shells that are alive and active
 }
-DefineComponent("tankturret", CTankTurret)
+ECS:DefineComponent("tankturret", CTankTurret)
 
 CProjectile = {
 	speed=250,
 	shooter_entity=0
 }
-DefineComponent("projectile", CProjectile)
+ECS:DefineComponent("projectile", CProjectile)
 
 COutOfBoundsKill = {
 }
-DefineComponent("outofbounds_kill", COutOfBoundsKill)
+ECS:DefineComponent("outofbounds_kill", COutOfBoundsKill)
 
 -- Dispatch a message (via msg_dispatcher) when given button is pressed
 CMsgOnButton = {
@@ -258,13 +258,13 @@ CMsgOnButton = {
 	msg="button-msg",		-- message name to dispatch
 	channel=Msging.CHANNEL	-- on which channel to dispatch
 }
-DefineComponent("msg_on_button", CMsgOnButton)
+ECS:DefineComponent("msg_on_button", CMsgOnButton)
 
 -- Counts down time, stops if zero
 CTimedown = {
 	time = 0.0
 }
-DefineComponent("timedown", CTimedown)
+ECS:DefineComponent("timedown", CTimedown)
 
 -- Dispatch message when entity dies, self kill after
 CKillMsg = {
@@ -272,14 +272,14 @@ CKillMsg = {
 	channel = Msging.CHANNEL,
 	msg = "entity-died"
 }
-DefineComponent("killmsg", CKillMsg)
+ECS:DefineComponent("killmsg", CKillMsg)
 
 -- Call function when entity dies, self kill after
 CKillFunc = {
 	entity = -1,		-- entity to watch
 	funcbind = nil,		-- {func=, data=}
 }
-DefineComponent("killfunc", CKillFunc)
+ECS:DefineComponent("killfunc", CKillFunc)
 
 -- Spawns swarm of tanks across multiple spawn zones
 -- Monitors spawn zones to make sure they are clear when spawn is triggered
@@ -297,7 +297,7 @@ CSpawnDirector = {
 	_timer = 0,
 	_current_zone = 1,	-- Used to alternate between spawn zones
 }
-DefineComponent("spawndirector", CSpawnDirector)
+ECS:DefineComponent("spawndirector", CSpawnDirector)
 
 -- Acts as the tank controller, must be add to a tank entity
 CEnemyControl = {
@@ -307,20 +307,20 @@ CEnemyControl = {
 	dir_percent = {.05, .15, .2, .4, .2},-- percentage of 0/UP/RIGHT/DOWN/LEFT (must total 1.0)
 	_move_timer = 0.0,
 }
-DefineComponent("enemycontrol", CEnemyControl)
+ECS:DefineComponent("enemycontrol", CEnemyControl)
 
 -- Tags critical target
 CCriticalTarget = {}
-DefineComponent("criticaltarget", CCriticalTarget)
+ECS:DefineComponent("criticaltarget", CCriticalTarget)
 
 -- Critical target was destroyed
 CCriticalDeath = {
 	critical_target = -1	-- entity of critical target
 }
-DefineComponent("criticaldeath", CCriticalDeath)
+ECS:DefineComponent("criticaldeath", CCriticalDeath)
 
 CGameOver = {}
-DefineComponent("gameover", CGameOver)
+ECS:DefineComponent("gameover", CGameOver)
 
 ----------------------------------------------------- Deprecated Components
 
@@ -328,7 +328,7 @@ DefineComponent("gameover", CGameOver)
 CDelayedFuncSkipper = {
 	skip_on = nil,	-- msg name to skip on
 }
-DefineComponent("delayedfunc_skipper", CDelayedFuncSkipper)
+ECS:DefineComponent("delayedfunc_skipper", CDelayedFuncSkipper)
 
 -- Calls function when message is received, requires a msg_receiver to work
 -- TO IMPLEMENT
@@ -337,10 +337,10 @@ CMsgFunc = {
 	channel = Msging.CHANNEL,
 	func = nil
 }
-DefineComponent("msgfunc", CMsgFunc)
+ECS:DefineComponent("msgfunc", CMsgFunc)
 
 -- Skips move4 component by finishing it immediately, needs a msg_receiver to work
 CMove4Skipper = {
 	skip_on = nil,	-- message name to skip on
 }
-DefineComponent("move4_skipper", CMove4Skipper)
+ECS:DefineComponent("move4_skipper", CMove4Skipper)
