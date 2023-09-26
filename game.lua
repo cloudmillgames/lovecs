@@ -112,13 +112,14 @@ Fire_Shell = function(ent)
 	local ec = GetEntComps(ent)
 	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
 	if ec.dir.dir == RIGHT then
-		rel_offset.x = -ec.tankturret.fire_point.y
+		rel_offset.x = ec.collshape.x + ec.collshape.w - ec.tankturret.fire_point.y
 		rel_offset.y = ec.tankturret.fire_point.x
 	elseif ec.dir.dir == DOWN then
-		rel_offset.y = -rel_offset.y
+		rel_offset.y = ec.collshape.y + ec.collshape.h - rel_offset.y
 	elseif ec.dir.dir == LEFT then
 		rel_offset.x = ec.tankturret.fire_point.y
 		rel_offset.y = ec.tankturret.fire_point.x
+	elseif ec.dir.dir == UP then
 	end
 	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill"})
 	local c = GetEntComps(be)
@@ -132,6 +133,8 @@ Fire_Shell = function(ent)
 	c.pos.x = ec.pos.x + rel_offset.x
 	c.pos.y = ec.pos.y + rel_offset.y
 	c.dir.dir = ec.dir.dir
+
+	print("FIRESHELL, relX = "..tostring(rel_offset.x).." ,relY = "..tostring(rel_offset.y))
 end
 
 GetMovementFromDir = function(dir)
@@ -384,7 +387,7 @@ USPlayerTankTurret = function(ent)
 		c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
 	end
 end
-DefineUpdateSystem({"player", "tankturret", "dir", "pos"}, USPlayerTankTurret)
+DefineUpdateSystem({"player", "tankturret", "dir", "pos", "collshape"}, USPlayerTankTurret)
 
 USTankShell = function(ent)
 	local c = GetEntComps(ent)
