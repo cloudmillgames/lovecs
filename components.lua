@@ -302,6 +302,19 @@ CEnemyControl = {
 }
 DefineComponent("enemycontrol", CEnemyControl)
 
+-- Tags critical target
+CCriticalTarget = {}
+DefineComponent("criticaltarget", CCriticalTarget)
+
+-- Critical target was destroyed
+CCriticalDeath = {
+	critical_target = -1	-- entity of critical target
+}
+DefineComponent("criticaldeath", CCriticalDeath)
+
+CGameOver = {}
+DefineComponent("gameover", CGameOver)
+
 ----------------------------------------------------- Deprecated Components
 
 -- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp

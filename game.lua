@@ -95,6 +95,24 @@ PlaySound = function(name)
 	Res.SoundEffects[name]:play()
 end
 
+StopSound = function(name)
+	Res.SoundEffects[name]:stop()
+end
+
+StopAllSounds = function()
+	for i in pairs(Res.SoundEffects) do
+		if Res.SoundEffects[i]:isPlaying() then
+			Res.SoundEffects[i]:stop()
+		end
+	end
+end
+
+-- Start menu sequence
+Restart_Game = function(ent)
+	KillAllEntities()
+	local start = SpawnEntity({"initstart"})
+end
+
 Construct_StartMenu = function(ent)
 	local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
 	local places = {}
@@ -138,6 +156,28 @@ end
 
 Construct_Gameplay = function()
 	local se = SpawnEntity({"initgame"})
+end
+
+Construct_GameOver = function(ent)
+	love.graphics.setBackgroundColor(START_BG_COLOR)
+	KillAllEntities()
+	StopAllSounds()
+
+	local gameover = SpawnEntity({"pos", "spr", "delayedfunc"})
+	local gc = GetEntComps(gameover)
+
+	gc.spr.spritesheet = "gameover"
+	gc.spr.scalex = SCALE
+	gc.spr.scaley = SCALE
+	gc.spr.layer = LAYER_UI
+
+	gc.pos.x = (SC_WIDTH / 2) - (Res.GetSpriteWidth("gameover") * SCALE / 2)
+	gc.pos.y = (SC_HEIGHT / 2) - (Res.GetSpriteHeight("gameover") * SCALE / 2)
+
+	gc.delayedfunc.delay = 5
+	gc.delayedfunc.func = Restart_Game
+
+	PlaySound("game_over")
 end
 
 -- Fires shell, returns shell entity
@@ -213,6 +253,26 @@ Small_Explosion = function(pos)
 	c.animspr.scaley = SCALE
 
 	c.animspr_onecycle.frametime = 0.05
+end
+
+-- pos = {x=N, y=N}
+Big_Explosion = function(pos)
+	local se = SpawnEntity({"animspr", "pos", "animspr_onecycle"})
+	local c = GetEntComps(se)
+
+	local sw = Res.GetSpriteWidth("explosion") * SCALE
+	local sh = Res.GetSpriteHeight("explosion") * SCALE
+
+	c.pos.x = pos.x - fround(sw / 2)
+	c.pos.y = pos.y - fround(sh / 2)
+
+	c.animspr.spritesheet = "explosion"
+	c.animspr.scalex = SCALE
+	c.animspr.scaley = SCALE
+
+	c.animspr_onecycle.frametime = 0.2
+
+	PlaySound("big_explosion")
 end
 
 GetMovementFromDir = function(dir)

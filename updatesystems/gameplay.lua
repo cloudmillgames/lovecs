@@ -13,7 +13,7 @@ USInitGame = function(ent)
 		tc.text = "<FPS>"
 	end
 	local def_goal = function()
-		local se = SpawnEntity({"pos", "animspr", "collid", "collshape"})
+		local se = SpawnEntity({"pos", "animspr", "collid", "collshape", "criticaltarget"})
 		local c = GetEntComps(se)
 		
 		c.pos.x = MAP_TO_COORD_X(12)
@@ -288,6 +288,15 @@ USShellCollision = function(ent)
 					PlaySound("solid_impact")
 				end
 				KillEntity(ent)
+			elseif other_layer == LAYER_OBJECTS then
+				if HasEntComp(other, "criticaltarget") then
+					-- Insta-death
+					local critdeath = SpawnEntity({"criticaldeath"})
+					local cdc = GetEntComps(critdeath)
+					cdc.criticaldeath.critical_target = other
+					Small_Explosion(c.pos)
+					KillEntity(ent)
+				end
 			elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
 				-- Silently annihilate both
 				KillEntity(other)
@@ -473,3 +482,54 @@ USCollisionMap_TileClear = function(ent)
 	KillEntity(ent)
 end
 DefineUpdateSystem({"maptile_clear"}, USCollisionMap_TileClear)
+
+USCriticalDeath = function(ent)
+	-- Critical death procedure
+	local c = GetEntComps(ent)
+	if IsAliveEntity(c.criticaldeath.critical_target) then
+		local cde = c.criticaldeath.critical_target
+		local cdc = GetEntComps(cde)
+
+		PlaySound("base_explosion")
+		local explode = Big_Explosion({x=cdc.pos.x + 8 * SCALE, y=cdc.pos.y + 8 * SCALE})
+
+		-- Critical target frame to destroyed
+		cdc.animspr.curr_frame = 6
+		-- Remove critical target collider
+		EntRemComp(cde, "collid")
+		EntRemComp(cde, "collshape")
+		-- Remove player components to disable control
+		local plrs = CollectEntitiesWith({"player"})
+		for i=1,#plrs do
+			EntRemComp(plrs[i], "player")
+		end
+		StopSound("tank_idle")
+		StopSound("tank_moving")
+		local gameover = SpawnEntity({"gameover"})
+	end
+	KillEntity(ent)
+end
+DefineUpdateSystem({"criticaldeath"}, USCriticalDeath)
+
+USGameOver = function(ent)
+	local popup = SpawnEntity({"spr", "pos", "move4", "delayedfunc"})
+	local pc = GetEntComps(popup)
+	
+	pc.spr.spritesheet = "small_gameover"
+	pc.spr.scalex = SCALE
+	pc.spr.scaley = SCALE
+	pc.spr.layer = LAYER_UI
+
+	pc.pos.x = (SC_WIDTH / 2) - (Res.GetSpriteWidth("small_gameover") * SCALE)
+	pc.pos.y = SC_HEIGHT
+
+	pc.move4.destx = pc.pos.x
+	pc.move4.desty = (SC_HEIGHT / 2) - (Res.GetSpriteHeight("small_gameover") * SCALE)
+	pc.move4.duration = 2
+
+	pc.delayedfunc.delay = 4
+	pc.delayedfunc.func = Construct_GameOver
+
+	KillEntity(ent)
+end
+DefineUpdateSystem({"gameover"}, USGameOver)
