@@ -84,6 +84,7 @@ Collision.ID = {
     dynamic = true, -- static vs dynamic shapes, static doesn't get events
     sensor = false, -- sensing collidor, means other non-sensor collider doesn't get event
                     -- an object both static and sensor is invalid
+                    -- sensor doesn't sense sensors, only non-sensor colliders
     layer = 0,      -- collision only calculated between different layers
     events = {},    -- events queue for current frame
     custom = nil    -- custom data that can be set to anything
@@ -178,12 +179,15 @@ Collision.run = function()
                     local ev = {e1, e2}
                     local sensor_mode = false
                     if e1c.collid.sensor == true or e2c.collid.sensor == true then
-                        -- sensors don't care about dynamic static
-                        if e1c.collid.sensor == true then
-                            add(e1c.collid.events, ev)
-                        end
-                        if e2c.collid.sensor == true then
-                            add(e2c.collid.events, ev)
+                        -- sensors don't care about dynamic static state
+                        -- two sensor colliders won't produce any events
+                        if e1c.collid.sensor ~= e2c.collid.sensor then
+                            if e1c.collid.sensor == true then
+                                add(e1c.collid.events, ev)
+                            end
+                            if e2c.collid.sensor == true then
+                                add(e2c.collid.events, ev)
+                            end
                         end
                     else
                         -- non-sensor respects dynamic/static
