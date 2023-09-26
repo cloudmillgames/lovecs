@@ -22,49 +22,8 @@ function _draw()
 	DrawECS()
 end
 
------------------ Define components
-
-CPos = {
-	x = 0,
-	y = 0
-}
-
-CSprite = {
-	frame = 1,
-	flip_x = false,
-	flip_y = false,
-}
-
-CPlayer = {
-	mode = "play",
-}
-
-DefineComponent("pos", CPos)
-DefineComponent("sprite", CSprite)
-DefineComponent("player", CPlayer)
-
------------------ Define systems
-
-USPlayerController = function(ent)
-	if btn(1) then ent.pos.x = ent.pos.x + 1 end 
-	if btn(0) then ent.pos.x = ent.pos.x - 1 end 
-end 
-
-DSSpriteDrawer = function(ent)
-	spr(ent.sprite.frame, ent.pos.x, ent.pos.y, 1, 1, ent.sprite.flip_x, ent.sprite.flip_y)
-end 
-
-DefineUpdateSystem({"player", "pos"}, USPlayerController)
-DefineDrawSystem({"sprite"}, DSSpriteDrawer)
-
------------------ Create entities
-
-eid = SpawnEntity({"pos", "sprite", "player"})
-
------------------ Clearing entities 
-
-KillEntity(eid)
-KillAllEntities()
+---------------- Game
+require 'game'
 
 
 ------------------------------------------ Love2D stuffs
@@ -116,8 +75,7 @@ end
 function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	_init()
-	table.insert(LoveSprites, love.graphics.newImage("santa.png"))
-	test()
+	--test()
 end 
 
 function love.keyreleased(key)
@@ -131,8 +89,7 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.print("Hello World!", 400, 300)
-	love.graphics.draw(LoveSprites[1],500,200,0,4,4)
+	_draw()
 end
 
 function btn(key)
