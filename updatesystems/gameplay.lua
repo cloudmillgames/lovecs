@@ -227,6 +227,7 @@ DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
 -- Tank shell collision handler
 USShellCollision = function(ent)
 	local c = GetEntComps(ent)
+	local player_shell = HasEntComp(ent, "playershell")
 	local events = c.collid.events
 	for i=1,#events do
 		local other = events[i][1]
@@ -237,6 +238,13 @@ USShellCollision = function(ent)
 		local other_layer = other_collid.layer
 		if other_layer == LAYER_MAP then
 			-- TODO spawn small explosion where we are
+			-- TODO detect type of map tile we collided with
+			KillEntity(ent)
+		elseif other_layer == LAYER_BG then	-- map boundaries
+			-- TODO spawn small explosion where we are
+			if player_shell then
+				PlaySound("solid_impact")
+			end
 			KillEntity(ent)
 		end
 	end

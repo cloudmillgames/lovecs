@@ -72,6 +72,10 @@ LoadResources = function()
 	Res.SoundEffects["tank_moving"]:setLooping(true)
 end
 
+PlaySound = function(name)
+	Res.SoundEffects[name]:play()
+end
+
 Construct_StartMenu = function(ent)
 	local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
 	local places = {}
@@ -161,7 +165,8 @@ Fire_Shell = function(ent, is_player)
 
 	-- Specific to player
 	if is_player == true then
-		Res.SoundEffects["tank_fire"]:play()
+		EntAddComp(be, "playershell")
+		PlaySound("tank_fire")
 	end
 end
 

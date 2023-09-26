@@ -34,6 +34,11 @@ CPlayer = {
 }
 DefineComponent("player", CPlayer)
 
+-- identify shell as players
+CPlayerShell = {
+}
+DefineComponent("playershell", CPlayerShell)
+
 -- A single frame sprite
 CSpr = {
 	spritesheet="",
