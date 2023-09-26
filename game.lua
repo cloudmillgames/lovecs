@@ -32,9 +32,12 @@ ARENA_BG_COLOR = {.4, .4, .4, 1}
 SC_TILE_WIDTH = MAP_TILE_WIDTH * SCALE
 SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
 SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE}
+
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
+
 TANK_STEP = 4.0
 SHELL_SPEED = 1.0
+TURRET_COOLDOWN = 0.2
 
 LAYER_BG = 10
 LAYER_MAP = 20
@@ -129,6 +132,7 @@ Construct_Gameplay = function()
 	local se = SpawnEntity({"initgame"})
 end
 
+-- Fires shell, returns shell entity
 Fire_Shell = function(ent, is_player)
 	local ec = GetEntComps(ent)
 	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
@@ -176,6 +180,8 @@ Fire_Shell = function(ent, is_player)
 		EntAddComp(be, "playershell")
 		PlaySound("tank_fire")
 	end
+
+	return be
 end
 
 -- pos = {x=N, y=N}

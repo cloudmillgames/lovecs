@@ -196,9 +196,10 @@ DefineComponent("screeneffect_door", CScreenEffect_Door)
 
 CTankTurret = {
 	cooldown = 1,
-	bullet_type = 1,
 	_timer_cooldown =0,
-	fire_point = {x=0, y=0}	-- offset for spawning UP, directionally aware
+	fire_point = {x=0, y=0},-- offset for spawning UP, directionally aware
+	max_live_shells = 1,	-- how many shells allowed to be alive
+	_live_shells = {}		-- shells that are alive and active
 }
 DefineComponent("tankturret", CTankTurret)
 

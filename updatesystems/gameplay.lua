@@ -79,6 +79,7 @@ USInitGame = function(ent)
 		comps.collid.layer = LAYER_PLAYER
 
 		comps.tankturret.fire_point = {x = 7 * SCALE, y = 0}
+		comps.tankturret.cooldown = TURRET_COOLDOWN
 
 		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
@@ -210,16 +211,33 @@ DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 -- Reads player fire input and applies turret cooldown, fires shell
 USPlayerTankTurret = function(ent)
 	local c = GetEntComps(ent)
-	if btn.z == 1 then
+	if btn.z >= 1 then
 		if c.tankturret._timer_cooldown == 0 then
-			Fire_Shell(ent, true)
-			c.tankturret._timer_cooldown = c.tankturret.cooldown
+			if #c.tankturret._live_shells < c.tankturret.max_live_shells then
+				local shell = Fire_Shell(ent, true)
+				if IsDeadEntity(shell) == false then
+					table.insert(c.tankturret._live_shells, shell)
+				end
+				c.tankturret._timer_cooldown = c.tankturret.cooldown
+			end
 		end
-	else
-		c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
 	end
+	c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
 end
 DefineUpdateSystem({"player", "tankturret", "dir", "pos", "collshape"}, USPlayerTankTurret)
+
+-- Tracks live shells and updates counters
+USTurretUpdate = function(ent)
+	local tt = GetEntComp(ent, "tankturret")
+	local new_live_shells = {}
+	for i=1,#tt._live_shells do
+		if IsDeadEntity(tt._live_shells[i]) == false then
+			table.insert(new_live_shells, tt._live_shells[i])
+		end
+	end
+	tt._live_shells = new_live_shells
+end
+DefineUpdateSystem({"tankturret"}, USTurretUpdate)
 
 -- Moves tank shell
 USTankShell = function(ent)
