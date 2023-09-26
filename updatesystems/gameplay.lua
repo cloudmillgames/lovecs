@@ -23,65 +23,12 @@ USInitGame = function(ent)
 		sc.scalex = SCALE
 		sc.scaley = SCALE
 	end
-	-- entity: to sense, must have motionsensor4, pos, collshape, collid
-	-- step: how far is the rect collider shifted in the 4 directions?
-	local def_vehicle_motion_sensor = function(entity, step)
-		assert(step ~= nil)
-		assert(HasEntComp(entity, "pos"))
-		assert(HasEntComp(entity, "collshape"))
-		assert(HasEntComp(entity, "collid"))
-		assert(HasEntComp(entity, "motionsensor4"))
-		local comps = GetEntComps(entity)
-		local sensors = {}
-		for i=1,4 do
-			local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid"})
-			local c = GetEntComps(s)
-			--c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
-			c.poslink.parent = entity
-			c.collshape.type = SHAPE_RECT
-			c.collshape.x = comps.collshape.x
-			c.collshape.y = comps.collshape.y
-			c.collshape.w = comps.collshape.w
-			c.collshape.h = comps.collshape.h
-			c.collid.ent = s
-			c.collid.layer = comps.collid.layer
-			add(sensors, s)
-		end
-		local up_shape = GetEntComp(sensors[UP], "collshape")
-		up_shape.y = decr(up_shape.y, step)
-		local right_shape = GetEntComp(sensors[RIGHT], "collshape")
-		right_shape.x = incr(right_shape.x, step)
-		local down_shape = GetEntComp(sensors[DOWN], "collshape")
-		down_shape.y = incr(down_shape.y, step)
-		local left_shape = GetEntComp(sensors[LEFT], "collshape")
-		left_shape.x = decr(left_shape.x, step)
-		comps.motionsensor4.sensors = sensors
-	end
 	local def_player = function()
-		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
-		local comps = GetEntComps(se)
-
-		comps.dbgname.name = "Player_"..tostring(se)
-
+		local tank = Construct_Tank(PLAYER_COLOR, LAYER_PLAYER)
+		EntAddComp(tank, "player")
+		local comps = GetEntComps(tank)
 		comps.pos.x = MAP_TO_COORD_X(10)
 		comps.pos.y = MAP_TO_COORD_Y(13)
-
-		comps.animspr.spritesheet="tanks"
-		comps.animspr.scalex = SCALE
-		comps.animspr.scaley = SCALE
-		comps.animspr.color = PLAYER_COLOR
-
-		comps.collshape.type = SHAPE_RECT
-		comps.collshape.w = 16 * SCALE
-		comps.collshape.h = 16 * SCALE
-
-		comps.collid.ent = se
-		comps.collid.layer = LAYER_PLAYER
-
-		comps.tankturret.fire_point = {x = 7 * SCALE, y = 0}
-		comps.tankturret.cooldown = TURRET_COOLDOWN
-
-		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
 	local def_bg = function()
 		-- Arena background
@@ -178,6 +125,7 @@ USInitGame = function(ent)
 	def_player()
 	def_map(STAGE)
 	def_screen_effect()
+	Construct_SpawnDirector()
 	-- init only runs once
 	KillEntity(ent)
 end
@@ -351,3 +299,38 @@ USOutOfBoundsKill = function(ent)
 	end
 end
 DefineUpdateSystem({"outofbounds_kill", "pos"}, USOutOfBoundsKill)
+
+USSpawnDirector = function(ent)
+	local c = GetEntComps(ent)
+	if c.spawndirector.active then
+		local sd = c.spawndirector
+
+		-- Update alive units tally
+		local alive = {}
+		for i=1,#sd._spawns do
+			if IsDeadEntity(sd._spawns[i]) == false then
+				add(alive, sd._spawns[i])
+			end
+		end
+		sd._spawns = alive
+
+		-- Spawn timer
+		if sd._timer > 0 then
+			sd._timer = math.max(sd._timer - DeltaTime, 0)
+		else
+			local alive_count = #sd._spawns
+			if sd.total_spawns > 0 then
+				if alive_count < sd.max_alive then
+					sd.total_spawns = sd.total_spawns - 1
+					sd._timer = sd.cooldown
+					Spawn_EnemyTank()
+				end
+			else
+				if alive_count == 0 then
+					-- TODO dispatch msg_on_finish and kill self
+				end
+			end
+		end
+	end
+end
+DefineUpdateSystem({"spawndirector"}, USSpawnDirector)

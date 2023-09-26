@@ -221,6 +221,112 @@ Time_Skip = function(ent)
 	end
 end
 
+-- Returns spawndirector entity
+Construct_SpawnDirector = function()
+	local se = SpawnEntity({"spawndirector"})
+	local c = GetEntComps(se)
+
+	c.active = true
+	c.total_spawns = 20
+	c.cooldown = 2.0
+
+	local zones = {
+		makeRect(SC_MAP_RECT[1], SC_MAP_RECT[2], 16 * SCALE, 16 * SCALE),
+		makeRect(MAP_TO_COORD_X(12), MAP_TO_COORD_Y(1), 16 * SCALE, 16 * SCALE),
+		makeRect(MAP_TO_COORD_X(23), MAP_TO_COORD_Y(1), 16 * SCALE, 16 * SCALE)
+	}
+
+	local sensors = {}
+	for i=1,#zones do
+		local s = SpawnEntity({"collsensor", "pos", "collshape", "collid"})
+		local cc = GetEntComps(s)
+		cc.collshape.type = SHAPE_RECT
+		cc.collshape.x = zones[i].x
+		cc.collshape.y = zones[i].y
+		cc.collshape.w = zones[i].w
+		cc.collshape.h = zones[i].h
+
+		cc.collid.ent = s
+		cc.collid.layer = LAYER_MAP
+
+		add(sensors, s)
+	end
+
+	return se
+end
+
+-- entity: to sense, must have motionsensor4, pos, collshape, collid
+Construct_TankMotionSensors = function(entity, step)
+	assert(step ~= nil)
+	assert(HasEntComp(entity, "pos"))
+	assert(HasEntComp(entity, "collshape"))
+	assert(HasEntComp(entity, "collid"))
+	assert(HasEntComp(entity, "motionsensor4"))
+	local comps = GetEntComps(entity)
+	local sensors = {}
+	for i=1,4 do
+		local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid"})
+		local c = GetEntComps(s)
+		--c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
+
+		c.poslink.parent = entity
+
+		c.collshape.type = SHAPE_RECT
+		c.collshape.x = comps.collshape.x
+		c.collshape.y = comps.collshape.y
+		c.collshape.w = comps.collshape.w
+		c.collshape.h = comps.collshape.h
+
+		c.collid.ent = s
+		c.collid.layer = comps.collid.layer
+
+		add(sensors, s)
+	end
+	local up_shape = GetEntComp(sensors[UP], "collshape")
+	up_shape.y = decr(up_shape.y, step)
+	local right_shape = GetEntComp(sensors[RIGHT], "collshape")
+	right_shape.x = incr(right_shape.x, step)
+	local down_shape = GetEntComp(sensors[DOWN], "collshape")
+	down_shape.y = incr(down_shape.y, step)
+	local left_shape = GetEntComp(sensors[LEFT], "collshape")
+	left_shape.x = decr(left_shape.x, step)
+	comps.motionsensor4.sensors = sensors
+end
+
+Construct_Tank = function(tank_color, tank_layer)
+	local se = SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
+	local comps = GetEntComps(se)
+
+	comps.dbgname.name = "Tank_"..tostring(se)
+
+	comps.animspr.spritesheet="tanks"
+	comps.animspr.scalex = SCALE
+	comps.animspr.scaley = SCALE
+	comps.animspr.color = tank_color
+
+	comps.collshape.type = SHAPE_RECT
+	comps.collshape.w = 16 * SCALE
+	comps.collshape.h = 16 * SCALE
+
+	comps.collid.ent = se
+	comps.collid.layer = tank_layer
+
+	comps.tankturret.fire_point = {x = 7 * SCALE, y = 0}
+	comps.tankturret.cooldown = TURRET_COOLDOWN
+
+	Construct_TankMotionSensors(se, TANK_STEP * SCALE)
+
+	return se
+end
+
+Construct_EnemyTank = function()
+	-- TODO create an enemy tank
+end
+
+Spawn_EnemyTank = function()
+	-- TODO spawn enemy tank
+end
+
 --------------------------------------------------------------------------------------------
 ----------------- Define Components
 --------------------------------------------------------------------------------------------

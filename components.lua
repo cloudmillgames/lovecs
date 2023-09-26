@@ -129,7 +129,6 @@ DefineComponent("poslink", CPosLink)
 
 -- Identifies entity as a collision sensor shape (used for MotionSensor)
 CCollSensor = {
-	collision = false
 }
 DefineComponent("collsensor", CCollSensor)
 
@@ -244,6 +243,24 @@ CKillMsg = {
 	msg = "entity-died"
 }
 DefineComponent("killmsg", CKillMsg)
+
+-- Spawns swarm of tanks across multiple spawn zones
+-- Monitors spawn zones to make sure they are clear when spawn is triggered
+-- Tracks which tanks are alive and spawns more when necessary
+-- Dispatches message when spawns are exhausted then kills self
+CSpawnDirector = {
+	active = true,		-- Spawner operates when active = true
+	total_spawns = 20,	-- How many tanks in total the director has
+	max_alive = 4,		-- How many alive units at one time from this spawner
+	zones = {},			-- Each zone is 16x16 rect {x=,y=,w=,h=} guaranteed to be free of tiles
+	sensors = {},		-- Zone sensors to make sure no objects are in the area when spawning
+	cooldown = 2.0,		-- Minimum time between spawns
+	msg_on_finish = "spawns-finished",
+	_timer = 0,
+	_current_zone = 1,	-- Used to alternate between spawn zones
+	_spawns = {}		-- Entities that were spawned
+}
+DefineComponent("spawndirector", CSpawnDirector)
 
 ----------------------------------------------------- Deprecated Components
 
