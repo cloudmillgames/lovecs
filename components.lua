@@ -122,3 +122,40 @@ CBmpText = {
     text = ""
 }
 DefineComponent("bmptext", CBmpText)
+
+CMenuCursor = {
+    places = {},    -- each pair of {x,y} is a menu item, index starts at 1
+    current = 1,    -- default to first place
+    funcs = {},     -- What to call when Z is pressed on menu cursor
+}
+DefineComponent("menucursor", CMenuCursor)
+
+-- Draws a cycling animated sprite to be used as UI cursor
+CUIAnimSprite = {
+    spritesheet="",
+	scalex=1,
+	scaley=1,
+	color=nil,
+	-- Specifies range of frames in spritesheet
+	frames = {},
+	curr_frame=1, -- Index into frames
+    frametime = 0,
+    _timer = 0
+}
+DefineComponent("uianimspr", CUIAnimSprite)
+
+-- Set 'func' to function you want, it will be called once after delay
+CDelayedFunc = {
+    delay = 0,
+    func = nil
+}
+DefineComponent("delayedfunc", CDelayedFunc)
+
+CScreenEffect_CloseDoor = {
+    duration = 1,   -- duration of closedoor effect
+    stay = 1,       -- how long does it stay after effect is over, til delete
+    rect_color = nil,
+    _timer_duration = 0,
+    _timer_stay = 0
+}
+DefineComponent("screeneffect_closedoor", CScreenEffect_CloseDoor)

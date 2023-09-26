@@ -31,6 +31,7 @@ LAYER_TANKS = 3
 LAYER_PLAYER = 4
 LAYER_EFFECTS = 5
 LAYER_UI = 6
+LAYER_SCREEN = 7
 LAYER_DEBUG = 100
 
 ----------------- Functions
@@ -57,6 +58,30 @@ LoadResources = function()
 	Res.SoundEffects["tank_moving"]:setLooping(true)
 end
 
+Construct_StartMenu = function()
+	local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
+	local places = {}
+	for i=1,3 do
+		local se = SpawnEntity({"pos", "bmptext"})
+		local c = GetEntComps(se)
+		c.pos.x = (1280 - 250) / 2
+		c.pos.y = i * 18 * SCALE + (720 / 2)
+		c.bmptext.text = txt[i]
+		add(places, {x = c.pos.x - 48, y = c.pos.y - 14})
+	end
+	local menu = SpawnEntity({"menucursor", "uianimspr"})
+	local mc = GetEntComps(menu)
+	mc.menucursor.places = places
+	-- 1 PLAYER, 2 PLAYER, CONSTRUCTION function calls
+	mc.menucursor.funcs = {nil, nil, nil}
+	mc.uianimspr.spritesheet = "icons"
+	mc.uianimspr.scalex = SCALE
+	mc.uianimspr.scaley = SCALE
+	mc.uianimspr.frames = {1, 2}
+	mc.uianimspr.curr_frame = 1
+	mc.uianimspr.frametime = 0.1
+end
+
 ----------------- Define Components
 require 'components'
 
@@ -75,19 +100,12 @@ USInitStart = function(ent)
 		c.move4.desty = 140
 		c.move4.duration = 3
 	end
-	local def_menu = function()
-		local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
-		for i=1,3 do
-			local se = SpawnEntity({"pos", "bmptext"})
-			local c = GetEntComps(se)
-			c.pos.x = (1280 - 250) / 2
-			c.pos.y = i * 14 * SCALE + (720 / 2)
-			c.bmptext.text = txt[i]
-		end
-	end
+	local menumaker = SpawnEntity({"delayedfunc"})
+	local mmc = GetEntComp(menumaker, "delayedfunc")
+	mmc.delay = 3
+	mmc.func = Construct_StartMenu
 	LoadResources()
 	def_title()
-	def_menu()
 end
 DefineUpdateSystem({"initstart"}, USInitStart)
 
@@ -258,10 +276,10 @@ DefineUpdateSystem({"initgame"}, USInitGame)
 USPlayerUpdate = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
-		if btn.up then comps.dir.dir = UP end
-		if btn.down then comps.dir.dir = DOWN end
-		if btn.left then comps.dir.dir = LEFT end
-		if btn.right then comps.dir.dir = RIGHT end
+		if btn.up > 0 then comps.dir.dir = UP end
+		if btn.down > 0 then comps.dir.dir = DOWN end
+		if btn.left > 0 then comps.dir.dir = LEFT end
+		if btn.right > 0 then comps.dir.dir = RIGHT end
 	end
 
 	-- Tank engine
@@ -283,7 +301,7 @@ USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
 		-- Check for input throttle
-		comps.tank.throttle = (btn.up and comps.dir.dir == UP) or (btn.right and comps.dir.dir == RIGHT) or (btn.down and comps.dir.dir == DOWN) or (btn.left and comps.dir.dir == LEFT)
+		comps.tank.throttle = (btn.up > 0 and comps.dir.dir == UP) or (btn.right > 0 and comps.dir.dir == RIGHT) or (btn.down > 0 and comps.dir.dir == DOWN) or (btn.left > 0 and comps.dir.dir == LEFT)
 
 		if comps.tank.throttle then
 			-- Check motion sensor for clear movement
@@ -414,6 +432,49 @@ USAnimSpr_Cycle = function(ent)
 end
 DefineUpdateSystem({"animspr", "animspr_cycle"}, USAnimSpr_Cycle)
 
+USMenuCursor = function(ent)
+	local comps = GetEntComps(ent)
+	-- Input
+	if btn.up == 1 then
+		comps.menucursor.current = math.max(comps.menucursor.current - 1, 1)
+	end
+	if btn.down == 1 then
+		comps.menucursor.current = math.min(comps.menucursor.current + 1, #comps.menucursor.places)
+	end
+	-- Animated sprite
+	comps.uianimspr._timer = comps.uianimspr._timer + DeltaTime
+	if comps.uianimspr._timer >= comps.uianimspr.frametime then
+		comps.uianimspr._timer = comps.uianimspr._timer - comps.uianimspr.frametime
+		comps.uianimspr.curr_frame = comps.uianimspr.curr_frame + 1
+		if comps.uianimspr.curr_frame > #comps.uianimspr.frames then
+			comps.uianimspr.curr_frame = 1
+		end
+	end
+end
+DefineUpdateSystem({"menucursor", "uianimspr"}, USMenuCursor)
+
+USDelayedFunc = function(ent)
+	local df = GetEntComp(ent, "delayedfunc")
+	df.delay = df.delay - DeltaTime
+	if df.delay <= 0 then
+		df.func()
+		KillEntity(ent)
+	end
+end
+DefineUpdateSystem({"delayedfunc"}, USDelayedFunc)
+
+USScreenEffect_CloseDoor = function(ent)
+	local secd = GetEntComp(ent, "screeneffect_closedoor")
+	if secd._timer_duration < secd.duration then
+		secd._timer_duration = math.min(secd._timer_duration + DeltaTime, secd.duration)
+	elseif secd._timer_stay < secd.stay then
+		secd._timer_stay = math.min(secd._timer_stay + DeltaTime, secd.stay)
+		if secd._timer_stay >= secd.stay then
+			KillEntity(ent)
+		end
+	end
+end
+
 ----------------- Define draw systems
 DSTextDrawer = function(ent)
 	local comps = GetEntComps(ent)
@@ -468,8 +529,27 @@ DSBmpTextDrawer = function(ent)
 end
 DefineDrawSystem({"pos", "bmptext"}, DSBmpTextDrawer)
 
+DSMenuCursor = function(ent)
+	local comps = GetEntComps(ent)
+	local ss = Res.GetSpritesheet(comps.uianimspr.spritesheet)
+	local img = Res.GetImage(ss.image)
+	local place = comps.menucursor.places[comps.menucursor.current]
+	Draw.drawQuad(LAYER_UI, img, ss.quads[comps.uianimspr.frames[comps.uianimspr.curr_frame]], place.x, place.y, 0, comps.uianimspr.scalex, comps.uianimspr.scaley)
+end
+DefineDrawSystem({"menucursor", "uianimspr"}, DSMenuCursor)
+
+DSScreenEffect_CloseDoor = function(ent)
+	local secd = GetEntComp(ent, "screeneffect_closedoor")
+	local perc = secd._timer_duration / secd.duration
+	local fact = (720 / 2) * perc
+	Draw.rectagnle(LAYER_SCREEN, "fill", 0, 0, 1280, fact)
+	local nhei = perc * 720 / 2
+	local rvrs = 720 - nhei
+	Draw.rectangle(LAYER_SCREEN, "fill", 0, rvrs, 1280, nhei)
+end
+
 ----------------- Create entities
 ents = {
-	--e_init=SpawnEntity({"initgame"}),
 	e_init=SpawnEntity({"initstart"})
+	--e_init=SpawnEntity({"initgame"}),
 }

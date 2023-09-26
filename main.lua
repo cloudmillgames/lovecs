@@ -8,12 +8,12 @@ function add(t, v)
 	table.insert(t, v)
 end
 
--- quick '+=' shorthand
+-- '+=' not really but more readable
 function incr(value, amount)
 	return value + amount
 end
 
--- quick '-=' shorthand
+-- '-=' not really but more readable
 function decr(value, amount)
 	return value - amount
 end
@@ -232,28 +232,28 @@ require 'collision'
 
 ---------------- Main
 btn = {
-	up = false,
-	down = false,
-	left = false,
-	right = false,
-	z = false,
-	x = false,
-	a = false,
-	s = false
+	up = 0,
+	down = 0,
+	left = 0,
+	right = 0,
+	z = 0,
+	x = 0,
+	a = 0,
+	s = 0
 }
 
 function _init()
 end
 
 function _update()
-	btn.up = love.keyboard.isDown("up")
-	btn.down = love.keyboard.isDown("down")
-	btn.left = love.keyboard.isDown("left")
-	btn.right = love.keyboard.isDown("right")
-	btn.z = love.keyboard.isDown("z")
-	btn.x = love.keyboard.isDown("x")
-	btn.a = love.keyboard.isDown("a")
-	btn.s = love.keyboard.isDown("s")
+	btn.up = love.keyboard.isDown("up") and btn.up + 1 or 0
+	btn.down = love.keyboard.isDown("down") and btn.down + 1 or 0
+	btn.left = love.keyboard.isDown("left") and btn.left + 1 or 0
+	btn.right = love.keyboard.isDown("right") and btn.right + 1 or 0
+	btn.z = love.keyboard.isDown("z") and btn.z + 1 or 0
+	btn.x = love.keyboard.isDown("x") and btn.x + 1 or 0
+	btn.a = love.keyboard.isDown("a") and btn.a + 1 or 0
+	btn.s = love.keyboard.isDown("s") and btn.s + 1 or 0
 	
 	Collision.run()
 	UpdateECS()
