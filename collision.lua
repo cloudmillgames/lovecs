@@ -82,7 +82,8 @@ Collision.ID = {
     ent = 0,        -- reference to owner entity
     dynamic = true, -- static vs dynammic shapes
     layer = 0,      -- collision only calculated between different layers
-    events = {}     -- events queue for current frame
+    events = {},    -- events queue for current frame
+    custom = nil    -- custom data that can be set to anything
 }
 DefineComponent("collid", Collision.ID)
 

@@ -136,15 +136,21 @@ USInitGame = function(ent)
 				if m[idx] ~= 0 then
 					local se = SpawnEntity({"dbgname", "maptile", "pos", "collshape", "collid"})
 					local comps = GetEntComps(se)
+
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
+
 					comps.maptile.type = m[idx]
+
 					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
 					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
+
 					comps.collshape.type = SHAPE_RECT
 					comps.collshape.w = 8 * SCALE
 					comps.collshape.h = 8 * SCALE
+
 					comps.collid.ent = se
 					comps.collid.layer = LAYER_MAP
+					comps.collid.custom = m[idx]
 				end
 				if m[idx] > 0 then
 					tl = tl..tostring(m[idx]).." "
@@ -236,10 +242,19 @@ USShellCollision = function(ent)
 		end
 		local other_collid = GetEntComp(other, "collid")
 		local other_layer = other_collid.layer
-		if other_layer == LAYER_MAP then
-			-- TODO spawn small explosion where we are
-			-- TODO detect type of map tile we collided with
-			KillEntity(ent)
+		if other_layer == LAYER_MAP then -- map tiles
+			local tile_type = other_collid.custom
+			-- All other types of tiles we ignore collision: grass, ice, water
+			if tile_type == TILE_BRICK then
+				Small_Explosion(c.pos)
+				PlaySound("brick_destroy")
+				KillEntity(other)
+				KillEntity(ent)
+			elseif tile_type == TILE_STONE then
+				Small_Explosion(c.pos)
+				PlaySound("solid_impact")
+				KillEntity(ent)
+			end
 		elseif other_layer == LAYER_BG then	-- map boundaries
 			Small_Explosion(c.pos)
 			if player_shell then

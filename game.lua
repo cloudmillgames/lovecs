@@ -15,6 +15,7 @@ DOWN = 3
 LEFT = 4
 
 STAGE = 1
+
 SC_WIDTH = 1280.0
 SC_HEIGHT = 720.0
 ORG_WIDTH = 256.0
@@ -44,6 +45,13 @@ LAYER_PROJECTILES = 60
 LAYER_UI = 70
 LAYER_SCREEN = 80
 LAYER_DEBUG = 100
+
+TILE_NOTHING = 0
+TILE_BRICK = 1
+TILE_STONE = 2
+TILE_GRASS = 3
+TILE_ICE = 4
+TILE_WATER = 5
 
 --------------------------------------------------------------------------------------------
 ----------------- Functions
@@ -178,8 +186,8 @@ Small_Explosion = function(pos)
 	local sw = Res.GetSpriteWidth("small_explosion") * SCALE
 	local sh = Res.GetSpriteHeight("small_explosion") * SCALE
 
-	c.pos.x = pos.x - fround(sw / 2) - (1 * SCALE)	-- 1 * SCALE is shell width/height
-	c.pos.y = pos.y - fround(sh / 2) - (1 * SCALE)
+	c.pos.x = pos.x - fround(sw / 2) + (1 * SCALE)	-- 1 * SCALE is shell width/height
+	c.pos.y = pos.y - fround(sh / 2) + (1 * SCALE)
 
 	c.animspr.spritesheet = "small_explosion"
 	c.animspr.scalex = SCALE
