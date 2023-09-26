@@ -357,6 +357,7 @@ Spawn_EnemyTank = function(zone)
 	c.animspr.scaley = SCALE
 
 	c.animspr_pingpong.cycles = 2
+	c.animspr_pingpong.frametime = 0.07
 
 	c.pos.x = zone.x
 	c.pos.y = zone.y

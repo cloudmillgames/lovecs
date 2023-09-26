@@ -14,7 +14,8 @@
 Collision = {}
 
 Collision._thresholdPointPoint = 1.0
-Collision._debugColor = {1, 0, 0, 1}
+Collision._debugColor = {1, 0, 0, 0.35}
+Collision._debugSensorColor = {0, 0, 1, 0.35}
 Collision.DEBUG = true
 
 -- Point = {x=N, y=N}
@@ -202,7 +203,6 @@ end
 Collision.draw = function()
     if Collision.DEBUG then
         local prev_color = {love.graphics.getColor()}
-        love.graphics.setColor(Collision._debugColor)
         local ents = CollectEntitiesWith({"pos", "collshape", "collid"})
         for i=1,#ents do
             local ent = ents[i]
@@ -210,6 +210,12 @@ Collision.draw = function()
             local ps = {}
             local rs = {}
             local cs = {}
+
+            if c.collid.sensor == false then
+                love.graphics.setColor(Collision._debugColor)
+            else
+                love.graphics.setColor(Collision._debugSensorColor)
+            end
 
             if c.collshape.type == SHAPE_POINT then
                 add(ps, c.pos.x)
