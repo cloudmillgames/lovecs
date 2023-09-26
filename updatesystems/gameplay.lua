@@ -230,39 +230,41 @@ USShellCollision = function(ent)
 		if other == ent then
 			other = events[i][2]
 		end
-		local other_collid = GetEntComp(other, "collid")
-		local other_layer = other_collid.layer
-		if other_layer == LAYER_MAP then -- map tiles
-			local tile_type = other_collid.custom
-			-- All other types of tiles we ignore collision: grass, ice, water
-			if tile_type == TILE_BRICK then
+		if IsDeadEntity(other) == false then
+			local other_collid = GetEntComp(other, "collid")
+			local other_layer = other_collid.layer
+			if other_layer == LAYER_MAP then -- map tiles
+				local tile_type = other_collid.custom
+				-- All other types of tiles we ignore collision: grass, ice, water
+				if tile_type == TILE_BRICK then
+					Small_Explosion(c.pos)
+					PlaySound("brick_destroy")
+					KillEntity(other)
+					KillEntity(ent)
+				elseif tile_type == TILE_STONE then
+					Small_Explosion(c.pos)
+					PlaySound("solid_impact")
+					KillEntity(ent)
+				end
+			elseif other_layer == LAYER_BG then	-- map boundaries
 				Small_Explosion(c.pos)
-				PlaySound("brick_destroy")
+				if player_shell then
+					PlaySound("solid_impact")
+				end
+				KillEntity(ent)
+			elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
+				-- Silently annihilate both
 				KillEntity(other)
 				KillEntity(ent)
-			elseif tile_type == TILE_STONE then
+			elseif player_shell == true and other_layer == LAYER_TANKS then
+				-- TODO enemy tank impact
 				Small_Explosion(c.pos)
-				PlaySound("solid_impact")
+				PlaySound("base_explosion")
+				KillEntity(other)
 				KillEntity(ent)
+			elseif player_shell == false and other_layer == LAYER_PLAYER then
+				-- TODO player tank impact
 			end
-		elseif other_layer == LAYER_BG then	-- map boundaries
-			Small_Explosion(c.pos)
-			if player_shell then
-				PlaySound("solid_impact")
-			end
-			KillEntity(ent)
-		elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
-			-- Silently annihilate both
-			KillEntity(other)
-			KillEntity(ent)
-		elseif player_shell == true and other_layer == LAYER_TANKS then
-			-- TODO enemy tank impact
-			Small_Explosion(c.pos)
-			PlaySound("base_explosion")
-			KillEntity(other)
-			KillEntity(ent)
-		elseif player_shell == false and other_layer == LAYER_PLAYER then
-			-- TODO player tank impact
 		end
 	end
 end
