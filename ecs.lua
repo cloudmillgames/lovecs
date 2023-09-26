@@ -8,6 +8,7 @@
 ecsEntityId = 1
 ecsBucketId = 1
 ecsEntities = {}
+ecsDeadEntities = {}
 ecsComponents = {}
 ecsUSystems = {}
 ecsDSystems = {}
@@ -187,6 +188,7 @@ end
 
 -- returns a dict of comp->data
 function GetEntComps(eid)
+	assert(eid)
 	return ecsEntities[eid].cdata
 end
 
@@ -227,6 +229,7 @@ end
 function KillEntity(eid)
 	ecsRemEntFromBuckets(eid)
 	ecsEntities[eid] = nil
+	table.insert(ecsDeadEntities, eid)
 end 
 
 function KillAllEntities()
@@ -234,5 +237,17 @@ function KillAllEntities()
 	for i=1,#ecsBuckets do
 		ecsBuckets[i] = {}
 	end
+	for i=1,#ecsEntities do
+		table.insert(ecsDeadEntities, ecsEntities[i])
+	end
 	ecsEntities = {}
+end
+
+function IsDeadEntity(eid)
+	for i=1,#ecsDeadEntities do
+		if ecsDeadEntities[i] == eid then
+			return true
+		end
+	end
+	return false
 end
