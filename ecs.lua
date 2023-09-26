@@ -217,7 +217,9 @@ end
 
 -- returns bool to check whether entity has component
 function ECS:HasEntComp(eid, comp_name)
-	assert(eid, "Invalid entity given: "..tostring(eid))
+	assert(eid, "Invalid entity given (nil)")
+	assert(self._Entities[eid], "Invalid entity id, no entity defined: "..tostring(eid))
+	--assert(comp_name, "Invalid component name given (nil)")
 	return self._Entities[eid].cdata[comp_name] ~= nil
 end
 

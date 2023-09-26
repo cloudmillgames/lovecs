@@ -326,6 +326,26 @@ ECS:DefineComponent("criticaldeath", CCriticalDeath)
 CGameOver = {}
 ECS:DefineComponent("gameover", CGameOver)
 
+-- Links a data property from an entity/component to a data property in current entity/comp
+CDataLink = {
+	src_ecs = "ECS",-- which global ECS is source? default is game (ECS) but can be MAIN
+	src_ent = -1,	-- source entity to fetch data from
+	src_comp = "",	-- source component name
+	src_prop = "",	-- source property that carries source value
+	dest_type = "string",	-- what type to convert src_prop to?
+	dest_comp = "",	-- destination comp to target
+	dest_prop = "",	-- destination property where value is updated
+}
+ECS:DefineComponent("datalink", CDataLink)
+
+-- Maintains an array of entities that is a given start size, when "keep" value drops it
+-- deletes entities from the end of the array to reflect. Used for enemy tank count UI sprites
+CEntArrKeep = {
+	ent_arr = {},	-- start entity array
+	keep = 20		-- how many entities to keep
+}
+ECS:DefineComponent("entarrkeep", CEntArrKeep)
+
 ----------------------------------------------------- Deprecated Components
 
 -- Skips delayed func on a specific message by calling func immediately, needs a msg_receiver comp

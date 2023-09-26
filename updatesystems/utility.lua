@@ -28,3 +28,28 @@ USCollisionDebug = function(ent)
 	end
 end
 ECS:DefineUpdateSystem({"dbgname", "collshape", "collid", "pos"}, USCollisionDebug)
+
+-- Links a data property from an entity/component to a data property in current entity
+-- Doesn't do anything if source entity is dead or src/dest component doesn't exist
+-- If datalink source is a non-existing property, will throw an error (does not support nil)
+-- Conversion supports string and number, any other type name is directly assigned (ie table, bool)
+USDataLinker = function(ent)
+	local l = ECS:GetEntComp(ent, "datalink")
+	local SRCECS = _G[l.src_ecs]
+	if SRCECS:IsAliveEntity(l.src_ent) then
+		-- If lua throws attempt to index nil value here, check SRCECS to make sure its the right one
+		if SRCECS:HasEntComp(l.src_ent, l.src_comp) and ECS:HasEntComp(ent, l.dest_comp) then
+			local src_comp = SRCECS:GetEntComp(l.src_ent, l.src_comp)
+			assert(src_comp[l.src_prop] ~= nil, "DataLink source property is nil which is not supported, property name: "..tostring(l.src_prop))
+			local dest_comp = ECS:GetEntComp(ent, l.dest_comp)
+			if l.dest_type == "string" then
+				dest_comp[l.dest_prop] = tostring(src_comp[l.src_prop])
+			elseif l.dest_type == "number" then
+				dest_comp[l.dest_prop] = tonumber(src_comp[l.src_prop])
+			else
+				dest_comp[l.dest_prop] = src_comp[l.src_prop]
+			end
+		end
+	end
+end
+ECS:DefineUpdateSystem({"datalink"}, USDataLinker)

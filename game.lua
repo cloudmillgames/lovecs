@@ -555,12 +555,24 @@ Construct_UILivesCount = function(sc_pos, count)
 	iccomps.spr.scaley = SCALE
 	iccomps.spr.layer = LAYER_UI
 
-	local lives = ECS:SpawnEntity({"pos", "bmptext"})
+	local lives = ECS:SpawnEntity({"pos", "bmptext", "datalink"})
 	local licomps = ECS:GetEntComps(lives)
+
 	licomps.pos.x = sc_pos.x + 8 * SCALE
 	licomps.pos.y = sc_pos.y + 8 * SCALE
+
 	licomps.bmptext.text = tostring(count)
 	licomps.bmptext.color = BLACK
+
+	local plrsession_ent = MAIN:GetFirstEntityWith({"plrsession"})
+	assert(MAIN:IsAliveEntity(plrsession_ent))
+	licomps.datalink.src_ecs = "MAIN"
+	licomps.datalink.src_ent = plrsession_ent
+	licomps.datalink.src_comp = "plrsession"
+	licomps.datalink.src_prop = "lives"
+	licomps.datalink.dest_type = "string"
+	licomps.datalink.dest_comp = "bmptext"
+	licomps.datalink.dest_prop = "text"
 end
 
 Construct_UIStageNumber = function(sc_pos, num)

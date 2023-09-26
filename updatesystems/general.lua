@@ -167,6 +167,31 @@ USTimedown = function(ent)
 end
 ECS:DefineUpdateSystem({"timedown"}, USTimedown)
 
+-- System to update UI enemy tank icons on the right by deleting entities based on keep value
+-- If keep value is 0, deletes all entities and self
+USEntArrKeep = function(ent)
+	local c = ECS:GetEntComp(ent, "entarrkeep")
+	if c.keep < #c.ent_array then
+		local new_arr = {}
+		local counter = 0
+		for i=1,#c.ent_array do
+			counter = counter + 1
+			if counter <= c.keep then
+				add(new_arr, c.ent_array[i])
+			else
+				if ECS:IsAliveEntity(c.ent_array[i]) then
+					ECS:KillEntity(c.ent_array[i])
+				end
+			end
+		end
+		c.ent_array = new_arr
+	end
+	if #c.ent_array == 0 then
+		ECS:KillEntity(ent)
+	end
+end
+ECS:DefineUpdateSystem({"entarrkeep"}, USEntArrKeep)
+
 --------------------------------------------------------------------------------------------
 ------------------------------------- DEPRECTAED (Implemented but no longer used)
 --------------------------------------------------------------------------------------------
