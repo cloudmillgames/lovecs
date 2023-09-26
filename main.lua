@@ -168,7 +168,7 @@ btn = {
 function _init()
 end
 
-function _update60()
+function _update()
 	btn.up = love.keyboard.isDown("up")
 	btn.down = love.keyboard.isDown("down")
 	btn.left = love.keyboard.isDown("left")
@@ -191,7 +191,8 @@ require 'game'
 
 
 ------------------------------------------ Love2D stuffs
-LoveSprites = {} 
+LoveSprites = {}
+DeltaTime = 0.0
 
 function test() 
 	print("Testing whether dictionary equality works")
@@ -221,10 +222,20 @@ function test()
 		print("  CASE " .. i .. ": " ..tostring(result))
 	end 
 end
+
+-- testshader = nil
+
 function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	_init()
 	--test()
+	
+	-- pixel shader only
+	-- testshader = love.graphics.newShader([[
+		-- uniform float time;
+		-- vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords) {
+			-- return vec4((1.0+sin(time))/2.0, abs(cos(time)), abs(sin(time)), 1.0);
+		-- }]])
 end
 
 function love.keyreleased(key)
@@ -233,10 +244,23 @@ function love.keyreleased(key)
    end
 end
 
+local t = 0
 function love.update(dt)
-	_update60()
+	DeltaTime = dt
+	_update()
+	--t = t + dt
+    --testshader:send("time", t)
 end
 
 function love.draw()
 	_draw()
+	
+	-- boring white
+    --love.graphics.rectangle('fill', 10,10,790,285)
+
+    -- LOOK AT THE PRETTY COLORS!
+    --love.graphics.setShader(testshader)
+    --love.graphics.rectangle('fill', 10,305,790,285)
+	
+    --love.graphics.setShader()
 end
