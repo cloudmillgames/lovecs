@@ -408,7 +408,7 @@ function ECS:CountTaggedEnts(tag)
 end
 
 function ECS:HasTaggedEnt(tag)
-	return ECS:CountTaggedEnts(tag) > 0
+	return self:CountTaggedEnts(tag) > 0
 end
 
 -- Set entitiy tag
