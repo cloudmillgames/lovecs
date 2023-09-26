@@ -329,6 +329,7 @@ function _update()
 	btn.a = love.keyboard.isDown("a") and btn.a + 1 or 0
 	btn.s = love.keyboard.isDown("s") and btn.s + 1 or 0
 	
+	Msging.run()
 	Collision.run()
 	UpdateECS()
 end

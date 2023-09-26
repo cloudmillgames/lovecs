@@ -8,26 +8,49 @@
 Msging = {}
 
 Msging.DEBUG = true
+Msging.CHANNEL = "global"
 
+-- Receiver components by default listens to global channel
 Msging.Receiver = {
-    channels = {},      -- List of channels this receiver wants to listen on
-    msgs = {}           -- list of messages incoming filled by Msging system {msg="name", data=data}, this must be cleared by receiver itself
+    channels = {Msging.CHANNEL},  -- channels this receiver wants to listen on
+    msgs = {}   -- msgs incoming filled by Msging system {msg="name", data=data}, must be cleared manually
 }
-DefineComponent("msg-receiver", Msging.Receiver)
+DefineComponent("msg_receiver", Msging.Receiver)
 
 Msging.Dispatcher = {
     dispatch = {},      -- expects {channel="name", msg="name", data=data} per msg, messages dispatched next frame update. Cleared by Msging system once processed
+    kill_after_reading = false  -- kill self entity once a msg is dispatched from this dispatcher
 }
-DefineComponent("msg-dispatcher", Msging.Dispatcher)
+DefineComponent("msg_dispatcher", Msging.Dispatcher)
+
+-- Helper function to queue channel-msg-data in dispatcher component
+Msging.dispatch = function(dispatcher, _channel, _msg, _data)
+    assert(type(dispatcher) == "table")
+    assert(type(_channel) == "string")
+    assert(type(_msg) == "string")
+    table.insert(dispatcher.dispatch, {channel=_channel, msg=_msg, data=_data})
+end
+
+-- Checks if receiver has the message given, simplification, data is ignored
+Msging.received_msg = function(receiver, _msg)
+    assert(type(receiver) == "table")
+    assert(type(_msg) == "string")
+    for i=1,#receiver.msgs do
+        if receiver.msgs[i].msg == _msg then
+            return true
+        end
+    end
+    return false
+end
 
 Msging.run = function()
-    local dispatchers = CollectEntitiesWith({"msg-dispatcher"})
-    local receivers = CollectEntitiesWith({"msg-receiver"})
+    local dispatchers = CollectEntitiesWith({"msg_dispatcher"})
+    local receivers = CollectEntitiesWith({"msg_receiver"})
 
     local channel_to_receivers = {} -- collects receiver entities by channel name
     for i=1,#receivers do
         local rec_ent = receivers[i]
-        local comp = GetEntComp(rec_ent, "msg-receiver")
+        local comp = GetEntComp(rec_ent, "msg_receiver")
         assert(type(comp.channels) == "table")
         assert(type(comp.msgs) == "table")
         for j=1,#comp.channels do
@@ -41,7 +64,7 @@ Msging.run = function()
 
     for i=1,#dispatchers do
         local dsp_ent = dispatchers[i]
-        local comp = GetEntComp(dsp_ent, "msg-dispatcher")
+        local comp = GetEntComp(dsp_ent, "msg_dispatcher")
         assert(type(comp.dispatch) == "table")
         for j=1,#comp.dispatch do
             local dmsg = comp.dispatch[j]
@@ -50,8 +73,11 @@ Msging.run = function()
             if channel_to_receivers[dmsg.channel] ~= nil then
                 for k=1,#channel_to_receivers[dmsg.channel] do
                     local rec_ent = channel_to_receivers[dmsg.channel][k]
-                    local rec = GetEntComp(rec_ent, "msg-receiver")
+                    local rec = GetEntComp(rec_ent, "msg_receiver")
                     table.insert(rec.msgs, {msg=dmsg.msg, data=dmsg.data})
+                end
+                if comp.kill_after_reading == true then
+                    KillEntity(dsp_ent)
                 end
             else
                 print("Msging: msg-dispatch to channel no one listening on: "..dmsg.channel)
