@@ -23,12 +23,22 @@ Msging.Dispatcher = {
 }
 DefineComponent("msg_dispatcher", Msging.Dispatcher)
 
--- Helper function to queue channel-msg-data in dispatcher component
+-- queue channel-msg-data in dispatcher component
 Msging.dispatch = function(dispatcher, _channel, _msg, _data)
     assert(type(dispatcher) == "table")
     assert(type(_channel) == "string")
     assert(type(_msg) == "string")
     table.insert(dispatcher.dispatch, {channel=_channel, msg=_msg, data=_data})
+end
+
+-- spawn a message dispatcher entity that dispatches message then dies
+Msging.dispatchEntity = function(_channel, _msg, _data)
+    assert(type(_channel) == "string")
+    assert(type(_msg) == "string")
+    local e = SpawnEntity({"msg_dispatcher"})
+    local c = GetEntComp(e, "msg_dispatcher")
+    c.kill_after_dispatch = true
+    Msging.dispatch(c, _channel, _msg, _data)
 end
 
 -- Checks if receiver has the message given, simplification, data is ignored
@@ -76,7 +86,7 @@ Msging.run = function()
                     local rec = GetEntComp(rec_ent, "msg_receiver")
                     table.insert(rec.msgs, {msg=dmsg.msg, data=dmsg.data})
                 end
-                if comp.kill_after_reading == true then
+                if comp.kill_after_dispatch == true then
                     KillEntity(dsp_ent)
                 end
             else
