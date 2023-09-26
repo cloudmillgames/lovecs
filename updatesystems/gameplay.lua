@@ -34,13 +34,6 @@ USInitGame = function(ent)
 		c.collshape.w = 16 * SCALE
 		c.collshape.h = 16 * SCALE
 	end
-	local def_player = function()
-		local tank = Construct_Tank(PLAYER_COLOR, LAYER_PLAYER)
-		ECS:EntAddComp(tank, "player")
-		local comps = ECS:GetEntComps(tank)
-		comps.pos.x = MAP_TO_COORD_X(10)
-		comps.pos.y = MAP_TO_COORD_Y(13)
-	end
 	local def_bg = function()
 		-- Arena background
 		local se = ECS:SpawnEntity({"arena_bg"})
@@ -150,7 +143,7 @@ USInitGame = function(ent)
 	def_fps()
 	def_goal()
 	def_bg()
-	def_player()
+	Construct_PlayerSpawner()
 	def_map(STAGE)
 	def_screen_effect()
 	Construct_SpawnDirector()
@@ -455,6 +448,23 @@ USSpawnDirector = function(ent)
 end
 ECS:DefineUpdateSystem({"spawndirector"}, USSpawnDirector)
 
+USPlayerSpawner = function(ent)
+	local c = ECS:GetEntComps(ent)
+	local ps = c.playerspawner
+
+	for i=1,#ps.zones do
+		local sensor_ent = ps.sensors[i]
+		local sensor = ECS:GetEntComp(sensor_ent, "collid")
+		if #sensor.events == 0 then
+			-- no units in spawn zone -> we spawn
+			Spawn_PlayerTank(ps.zones[i])
+			ECS:KillEntity(ent)
+			break
+		end
+	end
+end
+ECS:DefineUpdateSystem({"playerspawner"}, USPlayerSpawner)
+
 USEnemyControl = function(ent)
 	local c = ECS:GetEntComps(ent)
 	-- movement
@@ -554,7 +564,10 @@ USPlayerDeath = function(ent)
 
 	if sc.plrsession.lives > 0 then
 		sc.plrsession.lives = sc.plrsession.lives - 1
-		print("Lives left = "..tostring(sc.plrsession.lives))
+		local spawner = ECS:SpawnEntity({"delayedfunc"})
+		local dfunc = ECS:GetEntComp(spawner, "delayedfunc")
+		dfunc.delay = c.playerdeath.cooldown
+		dfunc.func = Construct_PlayerSpawner
 	else
 		Trigger_GameOver()
 	end

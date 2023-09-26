@@ -335,6 +335,41 @@ Construct_SpawnDirector = function()
 	return se
 end
 
+Construct_PlayerSpawner = function()
+	local se = ECS:SpawnEntity({"playerspawner"})
+	local c = ECS:GetEntComp(se, "playerspawner")
+
+	local zones = {
+		makeRect(MAP_TO_COORD_X(10), MAP_TO_COORD_Y(13), 16 * SCALE, 16 * SCALE),
+		makeRect(MAP_TO_COORD_X(14), MAP_TO_COORD_Y(13), 16 * SCALE, 16 * SCALE)
+	}
+
+	local sensors = {}
+	for i=1,#zones do
+		local s = ECS:SpawnEntity({"collsensor", "pos", "collshape", "collid", "child"})
+		local cc = ECS:GetEntComps(s)
+
+		cc.child.parent = se
+
+		cc.collshape.type = SHAPE_RECT
+		cc.collshape.x = zones[i].x
+		cc.collshape.y = zones[i].y
+		cc.collshape.w = zones[i].w
+		cc.collshape.h = zones[i].h
+
+		cc.collid.ent = s
+		cc.collid.layer = LAYER_MAP
+		cc.collid.sensor = true
+
+		add(sensors, s)
+	end
+
+	c.zones = zones
+	c.sensors = sensors
+
+	return se
+end
+
 -- entity: to sense, must have motionsensor4, pos, collshape, collid
 Construct_TankMotionSensors = function(entity, step)
 	assert(step ~= nil)
@@ -378,7 +413,12 @@ Construct_TankMotionSensors = function(entity, step)
 	comps.motionsensor4.sensors = sensors
 end
 
-Construct_Tank = function(tank_color, tank_layer)
+Construct_Tank = function(data)
+	local zone = data[1]
+	local tank_color = data[2]
+	local tank_layer = data[3]
+	local dir = data[4]
+
 	local se = ECS:SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
 	local comps = ECS:GetEntComps(se)
 
@@ -401,23 +441,20 @@ Construct_Tank = function(tank_color, tank_layer)
 
 	Construct_TankMotionSensors(se, TANK_STEP * SCALE)
 
+	if tank_layer == LAYER_PLAYER then
+		ECS:EntAddComp(se, "player")
+	else
+		ECS:EntAddComps(se, {"enemy", "enemycontrol"})
+	end
+	comps.pos.x = zone.x
+	comps.pos.y = zone.y
+	comps.dir.dir = dir
+
 	return se
 end
 
-Construct_EnemyTank = function(spawn_pos)
-	local tank = Construct_Tank(TANK_COLORS[1], LAYER_TANKS)
-
-	ECS:EntAddComps(tank, {"enemy", "enemycontrol"})
-
-	local comps = ECS:GetEntComps(tank)
-
-	comps.pos.x = spawn_pos.x
-	comps.pos.y = spawn_pos.y
-
-	comps.dir.dir = DOWN
-end
-
-Spawn_EnemyTank = function(zone)
+-- Enemy or player doesn't care
+Spawn_ATank = function(zone, tank_color, tank_layer, dir)
 	local seffect = ECS:SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
 	local c = ECS:GetEntComps(seffect)
 
@@ -445,7 +482,15 @@ Spawn_EnemyTank = function(zone)
 	local cc = ECS:GetEntComps(kfunc)
 
 	cc.killfunc.entity = seffect
-	cc.killfunc.funcbind = makeFunc(Construct_EnemyTank, zone)
+	cc.killfunc.funcbind = makeFunc(Construct_Tank, {zone, tank_color, tank_layer, dir})
+end
+
+Spawn_EnemyTank = function(zone)
+	Spawn_ATank(zone, TANK_COLORS[1], LAYER_TANKS, DOWN)
+end
+
+Spawn_PlayerTank = function(zone)
+	Spawn_ATank(zone, PLAYER_COLOR, LAYER_PLAYER, UP)
 end
 
 Trigger_GameOver = function()

@@ -36,6 +36,7 @@ ECS:DefineComponent("player", CPlayer)
 
 -- indicates a player death event
 CPlayerDeath = {
+	cooldown = 2.0	-- Respawn cooldown time
 }
 ECS:DefineComponent("playerdeath", CPlayerDeath)
 
@@ -295,6 +296,12 @@ CSpawnDirector = {
 	_current_zone = 1,	-- Used to alternate between spawn zones
 }
 ECS:DefineComponent("spawndirector", CSpawnDirector)
+
+CPlayerSpawner = {
+	zones = {},			-- Each zone is 16x16 rect {x=,y=,w=,h=} guaranteed to be free of tiles
+	sensors = {},		-- Zone sensors to make sure no objects are in the area when spawning
+}
+ECS:DefineComponent("playerspawner", CPlayerSpawner)
 
 -- Acts as the tank controller, must be add to a tank entity
 CEnemyControl = {
