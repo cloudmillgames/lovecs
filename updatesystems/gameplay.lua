@@ -321,7 +321,6 @@ USSpawnDirector = function(ent)
 				alive_count = alive_count + 1
 			end
 		end
-		print("ALIVE TANKS = "..tostring(alive_count))
 
 		-- Spawn timer
 		if sd._timer > 0 then

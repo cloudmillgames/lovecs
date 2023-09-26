@@ -25,6 +25,7 @@ USKillFunc = function(ent)
 	local c = GetEntComps(ent)
 	if IsDeadEntity(c.killfunc.entity) then
 		callFunc(c.killfunc.funcbind)
+		KillEntity(ent)
 	end
 end
 DefineUpdateSystem({"killfunc"}, USKillFunc)
