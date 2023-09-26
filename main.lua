@@ -123,7 +123,9 @@ Res.LoadSpritesheet = function(name, data)
 	local ss = {
 		image=data[1],
 		framecount=frames,
-		quads={}
+		quads={},
+		quadwidth=qw,
+		quadheight=qh
 	}
 	for r=1,fr do
 		for c=1,fc do
@@ -169,12 +171,24 @@ Res.LoadMusicPack = function(pack)
 	end
 end
 
--- Returns: {image="img_name", framecount=N, quads={Quad,..}}
+-- Returns: {image="img_name", framecount=N, quads={Quad,..}, quadwidth=N, quadheight=N}
 Res.GetSpritesheet = function(name)
 	if Res.Spritesheets[name] == nil then
 		error("Res.GetSpritesheet called on undefined: "..name)
 	end
 	return Res.Spritesheets[name]
+end
+
+-- Returns sprite width as defined in given spritesheet name (unscaled)
+Res.GetSpriteWidth = function(ss_name)
+	assert(Res.Spritesheets[ss_name] ~= nil)
+	return Res.Spritesheets[ss_name].quadwidth
+end
+
+-- Returns sprite height as defined in given spritesheet name (unscaled)
+Res.GetSpriteHeight = function(ss_name)
+	assert(Res.Spritesheets[ss_name] ~= nil)
+	return Res.Spritesheets[ss_name].quadheight
 end
 
 ----------------

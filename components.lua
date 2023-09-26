@@ -60,8 +60,8 @@ CAnimSpr = {
 	scaley=1,
 	color=nil,
 	-- Specifies range of frames in spritesheet
-	frame_start=1,	-- what's first frame in spritesheet
-	frame_end=-1	-- < 1 means last frame
+	frame_start = 1,-- what's first frame in spritesheet
+	frame_end = -1	-- < 1 means last frame
 }
 DefineComponent("animspr", CAnimSpr)
 
