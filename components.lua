@@ -31,14 +31,11 @@ CImg = {
 ECS:DefineComponent("img", CImg)
 
 -- identify entity as player
-CPlayer = {
-	lives = 3
-}
+CPlayer = {}
 ECS:DefineComponent("player", CPlayer)
 
 -- indicates a player death event
 CPlayerDeath = {
-	player = -1		-- player entity that died
 }
 ECS:DefineComponent("playerdeath", CPlayerDeath)
 

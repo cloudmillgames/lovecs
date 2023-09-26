@@ -321,8 +321,6 @@ USShellCollision = function(ent)
 					ECS:KillEntity(other)
 					-- Lose a live or gameover
 					local playerdeath = ECS:SpawnEntity({"playerdeath"})
-					local pc = ECS:GetEntComps(playerdeath)
-					pc.playerdeath.player = other
 				else
 					error("There shouldn't be another entity in player layer that is not player at the moment")
 				end
@@ -546,14 +544,21 @@ ECS:DefineUpdateSystem({"gameover"}, USGameOver)
 
 USPlayerDeath = function(ent)
 	local c = ECS:GetEntComps(ent)
-	-- local player = c.playerdeath.player
-	-- local pc = ECS:GetEntComps(player)
-	-- if pc.player.lives > 0 then
-	-- 	pc.player.lives = pc.player.lives - 1
-	-- 	-- TODO respawn
-	-- else
-	-- 	Trigger_GameOver()
-	-- end
+
+	StopSound("tank_idle")
+	StopSound("tank_moving")
+
+	local session = MAIN:GetFirstEntityWith({"plrsession"})
+	assert(session ~= nil and MAIN:IsAliveEntity(session))
+	local sc = MAIN:GetEntComps(session)
+
+	if sc.plrsession.lives > 0 then
+		sc.plrsession.lives = sc.plrsession.lives - 1
+		print("Lives left = "..tostring(sc.plrsession.lives))
+	else
+		Trigger_GameOver()
+	end
+
 	ECS:KillEntity(ent)
 end
 ECS:DefineUpdateSystem({"playerdeath"}, USPlayerDeath)

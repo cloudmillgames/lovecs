@@ -7,6 +7,10 @@ ECSClass = require 'ecs'
 ECS = ECSClass.new()
 MAIN = ECSClass.new()
 
+require 'main-components'
+require 'updatesystems.main'
+require 'drawsystems.main'
+
 ---------------- Love2D-PICO8 adaptor
 function add(t, v)
 	table.insert(t, v)

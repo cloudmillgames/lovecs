@@ -83,7 +83,7 @@ function ECS:_CompEqSort(comp1, comp2)
 end
 
 function ECS:_CreateComp(comp)
-	if comp == nil then error("ecsCreateComp() nil component, probably wrong name") end
+	if comp == nil then error("_CreateComp() nil component, probably wrong name") end
 	local newcomp = {}
 	for i, v in pairs(comp) do
 		newcomp[i] = v

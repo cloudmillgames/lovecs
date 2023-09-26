@@ -1,4 +1,4 @@
--- ** Draw Systems **
+-- ** General Draw Systems **
 
 local text = require 'text'
 
@@ -97,15 +97,3 @@ DSScreenEffect_Door = function(ent)
 	Draw.rectangle(LAYER_SCREEN, "fill", 0, rvrs, 1280, nhei)
 end
 ECS:DefineDrawSystem({"screeneffect_door"}, DSScreenEffect_Door)
-
--- DSCollEntDebug = function(ent)
--- 	local c = ECS:GetEntComps(ent)
--- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x + c.collshape.x, c.pos.y + c.collshape.y, 0, 0.9, 0.9)
--- end
--- ECS:DefineDrawSystem({"collid", "collshape", "pos"}, DSCollEntDebug)
-
--- DSCollMapDebug = function(ent)
--- 	local c = ECS:GetEntComps(ent)
--- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x, c.pos.y, 0, 0.9, 0.9)
--- end
--- ECS:DefineDrawSystem({"maptile", "pos"}, DSCollMapDebug)
