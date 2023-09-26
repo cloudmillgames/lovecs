@@ -251,6 +251,10 @@ USShellCollision = function(ent)
 				PlaySound("solid_impact")
 			end
 			KillEntity(ent)
+		elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
+			-- Silently annihilate both
+			KillEntity(other)
+			KillEntity(ent)
 		elseif player_shell == true and other_layer == LAYER_TANKS then
 			-- TODO enemy tank impact
 			Small_Explosion(c.pos)

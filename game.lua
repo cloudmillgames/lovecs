@@ -51,6 +51,7 @@ LAYER_TANKS = 30
 LAYER_PLAYER = 40
 LAYER_EFFECTS = 50
 LAYER_PROJECTILES = 60
+LAYER_PLAYER_PROJECTILES = 61
 LAYER_UI = 70
 LAYER_SCREEN = 80
 LAYER_DEBUG = 100
@@ -157,6 +158,11 @@ Fire_Shell = function(ent, is_player)
 		rel_offset.y = rel_offset.y - bul_center.y
 	end
 
+	local layer = LAYER_PROJECTILES
+	if is_player then
+		layer = LAYER_PLAYER_PROJECTILES
+	end
+
 	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill", "collshape", "collid"})
 	local c = GetEntComps(be)
 	-- projectile
@@ -167,7 +173,7 @@ Fire_Shell = function(ent, is_player)
 	c.spr.spriteid = 1
 	c.spr.scalex = SCALE
 	c.spr.scaley = SCALE
-	c.spr.layer = LAYER_PROJECTILES
+	c.spr.layer = layer
 	c.spr.spriteid = ec.dir.dir
 	-- position
 	c.pos.x = ec.pos.x + rel_offset.x
@@ -179,7 +185,7 @@ Fire_Shell = function(ent, is_player)
 	c.collshape.w = 3 * SCALE
 	c.collshape.h = 3 * SCALE
 	c.collid.ent = be
-	c.collid.layer = LAYER_PROJECTILES
+	c.collid.layer = layer
 
 	-- Specific to player
 	if is_player == true then
