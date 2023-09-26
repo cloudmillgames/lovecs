@@ -74,6 +74,7 @@ function ecsCompEqSort(comp1, comp2)
 end
 
 function ecsCreateComp(comp)
+	if comp == nil then error("ecsCreateComp() nil component, probably wrong name") end
 	local newcomp = {}
 	for i, v in pairs(comp) do 
 		newcomp[i] = v 
@@ -178,7 +179,7 @@ function SpawnEntity(comps_list)
 	local i
 	for i = 1, #comps_list do
 		comps_data[comps_list[i]] = ecsCreateComp(ecsComponents[comps_list[i]])
-	end 
+	end
 	ecsEntities[eid] = {
 		comps = comps_list,
 		cdata = comps_data
