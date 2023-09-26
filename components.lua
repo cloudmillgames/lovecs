@@ -72,6 +72,16 @@ CAnimSpr_OneCycle = {
 }
 DefineComponent("animspr_onecycle", CAnimSpr_OneCycle)
 
+-- animate sprite pingpong number of cycles then dispatch msg and kill self
+CAnimSpr_PingPong = {
+	frametime = 0.25,
+	_timer = 0.0,
+	_direction = 1,		-- 1 or -1
+	cycles = 1,			-- pingpong count, -1 forever
+	end_msg = nil		-- if set and msg_dispatcher, dispatches end_msg when pingpong is done
+}
+DefineComponent("animspr_pingpong", CAnimSpr_PingPong)
+
 -- an animator for the animated sprite that cycles all frames
 -- Deprecated: this counts in frames not DeltaTime
 CAnimSpr_Cycle = {
@@ -226,6 +236,14 @@ CTimedown = {
 	time = 0.0
 }
 DefineComponent("timedown", CTimedown)
+
+-- Dispatch message when entity dies, self kill after
+CKillMsg = {
+	entity = 0,			-- entity to watch
+	channel = Msging.CHANNEL,
+	msg = "entity-died"
+}
+DefineComponent("killmsg", CKillMsg)
 
 ----------------------------------------------------- Deprecated Components
 

@@ -1,6 +1,16 @@
 -- ** General Update Systems **
 local easing = require 'easing'
 
+-- Dispatches message when monitored entity dies, kills self after
+USKillMsg = function(ent)
+	local c = GetEntComps(ent)
+	if IsDeadEntity(c.killmsg.entity) then
+		Msging.dispatchEntity(c.killmsg.channel, c.killmsg.msg)
+		KillEntity(ent)
+	end
+end
+DefineUpdateSystem({"killmsg"}, USKillMsg)
+
 -- Entity position linked to a parent position with an offset
 USPosLink = function(ent)
 	local comps = GetEntComps(ent)
@@ -59,6 +69,31 @@ USAnimSpr_OneCycle = function(ent)
 	end
 end
 DefineUpdateSystem({"animspr", "animspr_onecycle"}, USAnimSpr_OneCycle)
+
+-- animate sprite pingpong number of cycles then dispatch msg and kill self
+USAnimSpr_PingPong = function(ent)
+	local c = GetEntComps(ent)
+	c.animspr_pingpong._timer = c.animspr_pingpong._timer + DeltaTime
+	if c.animspr_pingpong._timer >= c.animspr_pingpong.frametime then
+		c.animspr_pingpong._timer = c.animspr_pingpong._timer - c.animspr_pingpong.frametime
+		if c.animspr_pingpong._direction == 1 and c.animspr.curr_frame >= Res.GetSpriteFramecount(c.animspr.spritesheet) then
+			c.animspr_pingpong._direction = -1
+		elseif c.animspr_pingpong._direction == -1 and c.animspr.curr_frame <= 1 then
+			c.animspr_pingpong._direction = 1
+			if c.animspr_pingpong.cycles > 0 then
+				c.animspr_pingpong.cycles = c.animspr_pingpong.cycles - 1
+			end
+		end
+		c.animspr.curr_frame = c.animspr.curr_frame + c.animspr_pingpong._direction
+	end
+	if c.animspr_pingpong.cycles == 0 then
+		if c.animspr_pingpong.end_msg ~= nil then
+			Msging.dispatchEntity(Msging.CHANNEL, c.animspr_pingpong.end_msg)
+		end
+		KillEntity(ent)
+	end
+end
+DefineUpdateSystem({"animspr", "animspr_pingpong", "msg_dispatcher"}, USAnimSpr_PingPong)
 
 -- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)
