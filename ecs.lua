@@ -13,6 +13,7 @@ ECS.__index = ECS
 function ECS.new()
 	local ecs = setmetatable({}, ECS)
 
+	ecs._DebugMode = false
 	ecs._EntityId = 1
 	ecs._BucketId = 1
 	ecs._Entities = {}
@@ -131,9 +132,9 @@ function ECS:_DeepCloneTable(t)
 end
 
 function ECS:_RemEntFromBuckets(eid)
-	for i=1,#self._Buckets do
+	for i in pairs(self._Buckets) do
 		local cb = self._Buckets[i]
-		for j=1,#cb do
+		for j in pairs(cb) do
 			if cb[j] == eid then
 				table.remove(cb, j)
 				break
@@ -144,7 +145,7 @@ end
 
 function ECS:_AddEntToBuckets(eid, comps_list)
 	local cbucks = self:_GetCompatBuckets(comps_list)
-	for i=1,#cbucks do
+	for i in pairs(cbucks) do
 		table.insert(self._Buckets[cbucks[i]], eid)
 	end
 end
@@ -244,6 +245,18 @@ function ECS:SpawnEntity(comps_list, tag_name)
 		self:SetEntTag(eid, tag_name)
 	end
 
+	-- Debug stuff
+	if self._DebugMode then
+		local o = "ECS:New Ent ["..tostring(eid).."] = "
+		for i in pairs(comps_list) do
+			o = o..comps_list[i].." "
+		end
+		if tag_name then
+			o = o.." (#"..tag_name..")"
+		end
+		print(o)
+	end
+
 	return eid
 end
 
@@ -277,6 +290,14 @@ function ECS:EntAddComp(eid, comp_name)
 	table.sort(self._Entities[eid].comps)
 	self._Entities[eid].cdata[comp_name] = self:_CreateComp(self._Components[comp_name])
 	self:_RebucketEnt(eid, oldcomps, self._Entities[eid].comps)
+
+	if self._DebugMode then
+		local o = "ECS: Ent Add Comp "..tostring(comp_name).." ["..tostring(eid).."] = "
+		for i in pairs(self._Entities[eid].comps) do
+			o = o..self._Entities[eid].comps[i].." "
+		end
+		print(o)
+	end
 end
 
 -- Adds a list of new components to entity: comp_names = {"comp1", "comp2", ..}
@@ -297,6 +318,18 @@ function ECS:EntAddComps(eid, comp_names)
 		self._Entities[eid].cdata[new_comp] = self:_CreateComp(self._Components[new_comp])
 	end
 	self:_RebucketEnt(eid, oldcomps, self._Entities[eid].comps)
+
+	if self._DebugMode then
+		local o = "ECS: Ent Add Comps "
+		for _,v in pairs(comp_names) do
+			o=o..v.."+"
+		end
+		o=o.." ["..tostring(eid).."] = "
+		for i in pairs(self._Entities[eid].comps) do
+			o = o..self._Entities[eid].comps[i].." "
+		end
+		print(o)
+	end
 end
 
 -- Removes component from entity
@@ -304,7 +337,7 @@ function ECS:EntRemComp(eid, comp_name)
 	assert(self._Entities[eid].cdata[comp_name], "Ent doesn't have comp: "..tostring(comp_name))
 	local oldcomps = self:_DeepCloneTable(self._Entities[eid].comps)
 	local newcomps = {}
-	for i=1,#oldcomps do
+	for i in pairs(oldcomps) do
 		if oldcomps[i] ~= comp_name then
 			table.insert(newcomps, oldcomps[i])
 		end
@@ -313,28 +346,70 @@ function ECS:EntRemComp(eid, comp_name)
 	self._Entities[eid].comps = newcomps
 	self._Entities[eid].cdata[comp_name] = nil
 	self:_RebucketEnt(eid, oldcomps, newcomps)
+
+	if self._DebugMode then
+		local o = "ECS:Ent Remove Comp "..tostring(comp_name)
+		o = o.." ["..tostring(eid).."] = "
+		for i in pairs(self._Entities[eid].comps) do
+			o = o..self._Entities[eid].comps[i].." "
+		end
+		print(o)
+	end
 end
 
 function ECS:KillEntity(eid)
 	self:_RemEntFromBuckets(eid)
 	self._Entities[eid] = nil
 	table.insert(self._DeadEntities, eid)
+
+	if self._DebugMode then
+		local o = "ECS:Kill Entity ["..tostring(eid).."]"
+		print(o)
+	end
 end 
 
 function ECS:KillAllEntities()
-	for i=1,#self._Buckets do
-		self._Buckets[i] = {}
-	end
-	for i in pairs(self._Entities) do
-		table.insert(self._DeadEntities, self._Entities[i])
+	-- Deep nullifying each table is required here otherwise we get systems in particular situations calling
+	-- dangling entities (nil in entities list but not in dead entities) No idea how or why
+	-- for i in ipairs(self._Entities) do
+	-- 	self:KillEntity(i)
+	-- end
+	local live_ents = self:CountLiveEntities()
+	local buckets_count = 0
+	local ents_count = 0
+	local tagged_count = 0
+	for i in ipairs(self._Entities) do
+		table.insert(self._DeadEntities, i)
+		self._Entities[i].comps = nil
+		self._Entities[i].cdata = nil
+		self._Entities[i] = nil
+		ents_count = ents_count + 1
 	end
 	self._Entities = {}
+	for i in ipairs(self._Buckets) do
+		for j in ipairs(self._Buckets[i]) do
+			self._Buckets[i][j] = nil
+			buckets_count = buckets_count + 1
+		end
+		self._Buckets[i] = {}
+	end
+	for i in pairs(self._TaggedEnts) do
+		for j in ipairs(self._TaggedEnts[i]) do
+			self._TaggedEnts[i][j] = nil
+			tagged_count = tagged_count + 1
+		end
+	end
 	self._TaggedEnts = {}
-	--ecsEntityId = 1 this breaks collision and other stuff somehow
+
+	local o = "ECS:Kill All Ents ("..tostring(live_ents)..") killed: "
+	o=o..tostring(ents_count).." ents, "
+	o=o..tostring(buckets_count).." buckets, "
+	o=o..tostring(tagged_count).." tagged ents"
+	print(o)
 end
 
 function ECS:IsDeadEntity(eid)
-	for i=1,#self._DeadEntities do
+	for i in pairs(self._DeadEntities) do
 		if self._DeadEntities[i] == eid then
 			return true
 		end
@@ -380,7 +455,7 @@ end
 -- count how many entities are alive
 function ECS:CountLiveEntities()
 	local c=0
-	for i in pairs(self._Entities) do
+	for i in ipairs(self._Entities) do
 		c=c+1
 	end
 	return c
