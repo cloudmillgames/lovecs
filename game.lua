@@ -21,6 +21,7 @@ MAP_TILES_COLUMNS = 23
 MAP_TILES_ROWS = 13
 MAP_TILE_WIDTH = 16
 MAP_TILE_HEIGHT = 16
+START_BG_COLOR = {0, 0, 0, 1}
 ARENA_BG_COLOR = {.4, .4, .4, 1}
 SC_TILE_WIDTH = MAP_TILE_WIDTH * SCALE
 SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
@@ -175,6 +176,7 @@ require 'components'
 ----------------- Define update systems
 -- Initializes start screen sequence
 USInitStart = function(ent)
+	love.graphics.setBackgroundColor(START_BG_COLOR)
 	KillAllEntities()
 	local def_title = function()
 		local se = SpawnEntity({"pos", "animspr", "move4"})
