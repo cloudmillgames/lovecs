@@ -28,6 +28,7 @@ RES_SOUNDEFFECTS = {
 	new_hiscore = "res/sounds/new_hiscore.ogg",
 	score_point = "res/sounds/score_point.ogg",
 	solid_impact = "res/sounds/solid_impact.ogg",
+	tank_fire = "res/sounds/tank_fire.ogg",
 	tank_idle = "res/sounds/tank_idle.ogg",
 	tank_moving = "res/sounds/tank_moving.ogg",
 	warning = "res/sounds/warning.ogg"
