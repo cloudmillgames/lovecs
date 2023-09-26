@@ -26,13 +26,14 @@ SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
 TANK_STEP = 4.0
 
-LAYER_BG = 1
-LAYER_MAP = 2
-LAYER_TANKS = 3
-LAYER_PLAYER = 4
-LAYER_EFFECTS = 5
-LAYER_UI = 6
-LAYER_SCREEN = 7
+LAYER_BG = 10
+LAYER_MAP = 20
+LAYER_TANKS = 30
+LAYER_PLAYER = 40
+LAYER_EFFECTS = 50
+LAYER_PROJECTILES = 60
+LAYER_UI = 70
+LAYER_SCREEN = 80
 LAYER_DEBUG = 100
 
 ----------------- Functions
@@ -94,7 +95,7 @@ Construct_LevelScreen = function()
 		c.pos.y = (720 / 2) - 4
 		c.bmptext.text = "STAGE   "..tostring(STAGE)
 		c.bmptext.color = {0, 0, 0, 1}
-		c.delayedfunc.delay = 1.5
+		c.delayedfunc.delay = 2
 		c.delayedfunc.func = Construct_Gameplay
 		Music.play("level_start")
 	end
@@ -103,6 +104,34 @@ end
 
 Construct_Gameplay = function()
 	local se = SpawnEntity({"initgame"})
+end
+
+Fire_Shell = function(ent)
+	local ec = GetEntComps(ent)
+	local be = SpawnEntity({"projectile", "spr", "pos", "dir"})
+	local c = GetEntComps(be)
+	c.projectile.speed = 2 * SCALE
+	c.projectile.shooter_entity = ent
+	c.spr.spritesheet = "bullets"
+	c.spr.spriteid = 1
+	c.spr.scalex = SCALE
+	c.spr.scaley = SCALE
+	c.spr.layer = LAYER_PROJECTILES
+	c.pos.x = ec.pos.x
+	c.pos.y = ec.pos.y
+	c.dir.dir = ec.dir.dir
+end
+
+GetMovementFromDir = function(dir)
+	if dir == UP then
+		return {x=0, y=-1}
+	elseif dir == RIGHT then
+		return {x=1, y=0}
+	elseif dir == DOWN then
+		return {x=0, y=1}
+	else
+		return {x=-1, y=0}
+	end
 end
 
 ----------------- Define Components
@@ -134,6 +163,7 @@ DefineUpdateSystem({"initstart"}, USInitStart)
 
 USInitGame = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
+	KillAllEntities()
 
 	local def_fps = function()
 		local te = SpawnEntity({"pos", "text", "fpscounter"})
@@ -189,7 +219,7 @@ USInitGame = function(ent)
 		comps.motionsensor4.sensors = sensors
 	end
 	local def_player = function()
-		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid", "motionsensor4"})
+		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
 		local comps = GetEntComps(se)
 
 		comps.dbgname.name = "Player_"..tostring(se)
@@ -288,7 +318,7 @@ USInitGame = function(ent)
 	local def_screen_effect = function()
 		local se = SpawnEntity({"screeneffect_door"})
 		local c = GetEntComp(se, "screeneffect_door")
-		c.duration = 1
+		c.duration = 0.35
 		c.stay = 0
 		c.rect_color = ARENA_BG_COLOR
 		c.opening = true
@@ -328,6 +358,27 @@ USPlayerUpdate = function(ent)
 	end
 end
 DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
+
+USPlayerTankTurret = function(ent)
+	local c = GetEntComps(ent)
+	if btn.z == 1 then
+		if c.tankturret._timer_cooldown == 0 then
+			Fire_Shell(ent)
+			c.tankturret._timer_cooldown = c.tankturret.cooldown
+		end
+	else
+		c.tankturret._timer_cooldown = math.max(0, c.tankturret._timer_cooldown - DeltaTime)
+	end
+end
+DefineUpdateSystem({"player", "tankturret", "dir", "pos"}, USPlayerTankTurret)
+
+USTankShell = function(ent)
+	local c = GetEntComps(ent)
+	local mov = GetMovementFromDir(c.dir.dir)
+	c.pos.x = c.pos.x + (mov.x * c.projectile.speed)
+	c.pos.y = c.pos.y + (mov.y * c.projectile.speed)
+end
+DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
 
 USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
@@ -479,7 +530,7 @@ USMenuCursor = function(ent)
 			local se = SpawnEntity({"screeneffect_door", "delayedfunc"})
 			local secd = GetEntComp(se, "screeneffect_door")
 			local delf = GetEntComp(se, "delayedfunc")
-			secd.duration = 1
+			secd.duration = 0.35
 			secd.rect_color = ARENA_BG_COLOR
 			delf.delay = 1.1
 			delf.func = f
@@ -512,7 +563,6 @@ USScreenEffect_Door = function(ent)
 	local secd = GetEntComp(ent, "screeneffect_door")
 	if secd._timer_duration < secd.duration then
 		secd._timer_duration = math.min(secd._timer_duration + DeltaTime, secd.duration)
-		print(tostring(secd._timer_duration))
 	elseif secd._timer_stay < secd.stay then
 		secd._timer_stay = math.min(secd._timer_stay + DeltaTime, secd.stay)
 		if secd._timer_stay >= secd.stay then
@@ -529,11 +579,22 @@ DSTextDrawer = function(ent)
 end
 DefineDrawSystem({"pos", "text"}, DSTextDrawer)
 
-DSSpriteDrawer = function(ent)
+DSImageDrawer = function(ent)
 	local comps = GetEntComps(ent)
 	Draw.drawImage(LAYER_EFFECTS, Res.GetImage(comps.img.name), comps.pos.x, comps.pos.y, comps.img.orient, comps.img.scalex, comps.img.scaley)
 end
-DefineDrawSystem({"pos", "img"}, DSSpriteDrawer)
+DefineDrawSystem({"pos", "img"}, DSImageDrawer)
+
+DSSpriteDrawer = function(ent)
+	local comps = GetEntComps(ent)
+	local ss = Res.GetSpritesheet(comps.spr.spritesheet)
+	local img = Res.GetImage(ss.image)
+	if comps.spr.color then
+		Draw.setColor(comps.spr.color)
+	end
+	Draw.drawQuad(comps.spr.layer, img, ss.quads[comps.spr.spriteid], comps.pos.x, comps.pos.y, comps.spr.orient, comps.spr.scalex, comps.spr.scaley)
+end
+DefineDrawSystem({"pos", "spr"}, DSSpriteDrawer)
 
 DSAnimSpriteDrawer = function(ent)
 	local comps = GetEntComps(ent)

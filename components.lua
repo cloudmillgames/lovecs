@@ -34,6 +34,18 @@ CPlayer = {
 }
 DefineComponent("player", CPlayer)
 
+-- A single frame sprite
+CSpr = {
+	spritesheet="",
+	spriteid=1,
+	orient = 0.0,
+	scalex = 1,
+	scaley = 1,
+	color = nil,
+	layer = 0,
+}
+DefineComponent("spr", CSpr)
+
 -- an animated sprite
 CAnimSpr = {
 	spritesheet="",
@@ -161,3 +173,16 @@ CScreenEffect_Door = {
     _timer_stay = 0
 }
 DefineComponent("screeneffect_door", CScreenEffect_Door)
+
+CTankTurret = {
+	cooldown = 1,
+	bullet_type = 1,
+	_timer_cooldown =0
+}
+DefineComponent("tankturret", CTankTurret)
+
+CProjectile = {
+	speed=30,
+	shooter_entity=0
+}
+DefineComponent("projectile", CProjectile)
