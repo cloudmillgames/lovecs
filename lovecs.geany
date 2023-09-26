@@ -1,6 +1,6 @@
 [editor]
 line_wrapping=true
-line_break_column=72
+line_break_column=90
 auto_continue_multiline=true
 
 [file_prefs]
@@ -20,13 +20,20 @@ indent_mode=2
 [project]
 name=lovecs
 base_path=/home/pi/projects/lovecs/
+description=
+file_patterns=*.lua;
 
 [long line marker]
 long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=0
 
 [VTE]
 last_dir=/home/pi/projects/avrfpga
+
+[build-menu]
+EX_00_LB=_Execute
+EX_00_CM=love .
+EX_00_WD=

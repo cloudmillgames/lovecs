@@ -166,7 +166,7 @@ function DefineDrawSystem(comps_list, system_proc)
 	add(ecsDSystems, {proc = system_proc, ent_bucket = bucket})
 end
 
-function Entity(comps_list)
+function SpawnEntity(comps_list)
 	local eid = ecsNextEntityId()
 	local comps_data = {} 
 	table.sort(comps_list)
