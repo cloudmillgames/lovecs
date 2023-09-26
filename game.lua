@@ -1,4 +1,8 @@
 -- ** GAME **
+----------------- Libraries
+local easing = require 'easing'
+local text = require 'text'
+
 ----------------- Constants
 UP = 1
 RIGHT = 2
@@ -29,12 +33,14 @@ LAYER_EFFECTS = 5
 LAYER_UI = 6
 LAYER_DEBUG = 100
 
+----------------- Functions
 function MAP_TO_COORD_X(column)
 	if column > MAP_TILES_COLUMNS or column < 1 then
 		error("Invalid Map column: "..column)
 	end
 	return column * MAP_TILE_WIDTH * SCALE
 end
+
 function MAP_TO_COORD_Y(row)
 	if row > MAP_TILES_ROWS or row < 1 then
 		error("Invalid Map row: "..row)
@@ -42,122 +48,52 @@ function MAP_TO_COORD_Y(row)
 	return row * MAP_TILE_HEIGHT * SCALE
 end
 
------------------ Define components
--- Used to init game, should remove itself when run
-CInit = {}
-DefineComponent("init", CInit)
+LoadResources = function()
+	Res.Init()
+	Res.LoadImagesPack(RES_IMAGES)
+	Res.LoadSpritesheetsPack(RES_SPRITESHEETS)
+	Res.LoadSoundEffectsPack(RES_SOUNDEFFECTS)
+	Res.SoundEffects["tank_idle"]:setLooping(true)
+	Res.SoundEffects["tank_moving"]:setLooping(true)
+end
 
--- a direction of 4: 1 (up), 2 (right), 3(down), 4 (left)
-CDir = {
-	dir = 1
-}
-DefineComponent("dir", CDir)
-
--- a string
-CText = {
-	text = ""
-}
-DefineComponent("text", CText)
-
--- an image that gets drawn
-CImg = {
-	name="",
-	orient=0.0,
-	scalex=1,
-	scaley=1
-}
-DefineComponent("img", CImg)
-
--- identify entity as player
-CPlayer = {
-}
-DefineComponent("player", CPlayer)
-
--- an animated sprite
-CAnimSpr = {
-	spritesheet="",
-	curr_frame=1,
-	orient=0.0,
-	scalex=1,
-	scaley=1,
-	color=nil,
-	-- Specifies range of frames in spritesheet
-	frame_start=1,	-- what's first frame in spritesheet
-	frame_end=-1	-- < 1 means last frame
-}
-DefineComponent("animspr", CAnimSpr)
-
--- an animator for the animated sprite that cycles all frames
--- Deprecated: this counts in frames not DeltaTime
-CAnimSpr_Cycle = {
-	frametime=1,
-	_framecount=0	-- used to count frame time
-}
-DefineComponent("animspr_cycle", CAnimSpr_Cycle)
-
--- Battlecity arena
-CArenaBG = {}
-DefineComponent("arena_bg", CArenaBG)
-
--- All tanks have this comp
-CTank = {
-	type = 0,			-- refers to row in tanks spritesheet
-	chain_tick = 0,		-- ticks 0,1 to move chain
-	chain_timer = 0,	-- counts time for chain tick
-	chain_period = 0.06,-- time between chain ticks
-	throttle = false,	-- true means tank should move
-	speed = 30,
-	moving = 0,			-- used to lock movement for TANK_STEP distance
-	move_delta_x = 0,	-- used to fix tank movement to TANK_STEPs
-	move_delta_y = 0,
-}
-DefineComponent("tank", CTank)
-
-CMapTile = {
-	type = 1
-}
-DefineComponent("maptile", CMapTile)
-
-CFPSCounter = {
-	frame_timer = 0,
-	frame_count = 0,
-}
-DefineComponent("fpscounter", CFPSCounter)
-
--- Follow position of another entity with offset
-CPosLink = {
-	parent = 0,
-	offsetx = 0,
-	offsety = 0
-}
-DefineComponent("poslink", CPosLink)
-
--- Identifies entity as a collision sensor shape (used for MotionSensor)
-CCollSensor = {
-	collision = false
-}
-DefineComponent("collsensor", CCollSensor)
-
--- References 4 sensors each in the 4 cartesian directions (no diagonals)
--- Use to check whether you can move in that direction. UP RIGHT DOWN LEFT
-CMotionSensor4 = {
-	sensors = {}
-}
-DefineComponent("motionsensor4", CMotionSensor4)
-
+----------------- Define Components
+require 'components'
 
 ----------------- Define update systems
-USInit = function(ent)
+USInitStart = function(ent)
+	KillAllEntities()
+	local def_title = function()
+		local se = SpawnEntity({"pos", "animspr", "move4"})
+		local c = GetEntComps(se)
+		c.pos.x = (1280 - 188 * SCALE) / 2
+		c.pos.y = SC_MAP_RECT[2] + SC_MAP_RECT[4] + 10 * SCALE
+		c.animspr.spritesheet = "title"
+		c.animspr.scalex = SCALE
+		c.animspr.scaley = SCALE
+		c.move4.destx = c.pos.x
+		c.move4.desty = 140
+		c.move4.duration = 3
+	end
+	local def_menu = function()
+		local txt = {"1 PLAYER", "2 PLAYER", "CONSTRUCTION"}
+		for i=1,3 do
+			local se = SpawnEntity({"pos", "bmptext"})
+			local c = GetEntComps(se)
+			c.pos.x = (1280 - 250) / 2
+			c.pos.y = i * 14 * SCALE + (720 / 2)
+			c.bmptext.text = txt[i]
+		end
+	end
+	LoadResources()
+	def_title()
+	def_menu()
+end
+DefineUpdateSystem({"initstart"}, USInitStart)
+
+USInitGame = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
 
-	local load_resources = function()
-		Res.Init()
-		Res.LoadImagesPack(RES_IMAGES)
-		Res.LoadSpritesheetsPack(RES_SPRITESHEETS)
-		Res.LoadSoundEffectsPack(RES_SOUNDEFFECTS)
-		Res.SoundEffects["tank_idle"]:setLooping(true)
-		Res.SoundEffects["tank_moving"]:setLooping(true)
-	end
 	local def_fps = function()
 		local te = SpawnEntity({"pos", "text", "fpscounter"})
 		local pc = GetEntComp(te, "pos")
@@ -308,7 +244,7 @@ USInit = function(ent)
 		end
 		print(tl)
 	end
-	load_resources()
+	LoadResources()
 	def_fps()
 	def_goal()
 	def_bg()
@@ -317,7 +253,7 @@ USInit = function(ent)
 	-- init only runs once
 	KillEntity(ent)
 end
-DefineUpdateSystem({"init"}, USInit)
+DefineUpdateSystem({"initgame"}, USInitGame)
 
 USPlayerUpdate = function(ent)
 	local comps = GetEntComps(ent)
@@ -435,6 +371,30 @@ USPosLink = function(ent)
 end
 DefineUpdateSystem({"poslink", "pos"}, USPosLink)
 
+USMove4 = function(ent)
+	local c = GetEntComps(ent)
+	if c.move4.finished == false then
+		if c.move4._timer == 0 then
+			c.move4._originx = c.pos.x
+			c.move4._originy = c.pos.y
+		end
+		c.move4._timer = incr(c.move4._timer, DeltaTime)
+		if c.move4._timer >= c.move4.duration then
+			c.move4.finished = true
+			c.pos.x = c.move4.destx
+			c.pos.y = c.move4.desty
+		else
+			if c.pos.x ~= c.move4.destx then
+				c.pos.x = easing.linear(c.move4._timer, c.move4._originx, c.move4.destx - c.move4._originx, c.move4.duration)
+			end
+			if c.pos.y ~= c.move4.desty then
+				c.pos.y = easing.linear(c.move4._timer, c.move4._originy, c.move4.desty - c.move4._originy, c.move4.duration)
+			end
+		end
+	end
+end
+DefineUpdateSystem({"move4", "pos"}, USMove4)
+
 -- Deprecated: this counts in frames not DeltaTime
 USAnimSpr_Cycle = function(ent)
 	local comps = GetEntComps(ent)
@@ -492,7 +452,24 @@ DSMapTilesDrawer = function(ent)
 end
 DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
 
+DSBmpTextDrawer = function(ent)
+	local comps = GetEntComps(ent)
+	local fontss = Res.GetSpritesheet("font")
+	local fontimg = Res.GetImage(fontss.image)
+	for i=1,comps.bmptext.text:len() do
+		local chi = comps.bmptext.text:byte(i)
+		local chr = string.char(chi)
+		local si = text.charset[chr]
+		if si == nil then si = text.Charset["g"] end
+		assert(type(si) == "number")
+		assert(fontss.quads[si + 1])
+		Draw.drawQuad(LAYER_UI, fontimg, fontss.quads[si + 1], comps.pos.x + i * 8 * SCALE, comps.pos.y, 0, SCALE, SCALE)
+	end
+end
+DefineDrawSystem({"pos", "bmptext"}, DSBmpTextDrawer)
+
 ----------------- Create entities
 ents = {
-	e_init=SpawnEntity({"init"}),
+	--e_init=SpawnEntity({"initgame"}),
+	e_init=SpawnEntity({"initstart"})
 }
