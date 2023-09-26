@@ -80,7 +80,9 @@ DefineComponent("collshape", Collision.Shape)
 
 Collision.ID = {
     ent = 0,        -- reference to owner entity
-    dynamic = true, -- static vs dynammic shapes
+    dynamic = true, -- static vs dynamic shapes, static doesn't get events
+    sensor = false, -- sensing collidor, means other non-sensor collider doesn't get event
+                    -- an object both static and sensor is invalid
     layer = 0,      -- collision only calculated between different layers
     events = {},    -- events queue for current frame
     custom = nil    -- custom data that can be set to anything
@@ -173,8 +175,24 @@ Collision.run = function()
                 col = Collision.collideShape[e1c.collshape.type][e2c.collshape.type](e1c.pos, e2c.pos, e1c.collshape, e2c.collshape)
                 if col then
                     local ev = {e1, e2}
-                    add(e1c.collid.events, ev)
-                    add(e2c.collid.events, ev)
+                    local sensor_mode = false
+                    if e1c.collid.sensor == true or e2c.collid.sensor == true then
+                        -- sensors don't care about dynamic static
+                        if e1c.collid.sensor == true then
+                            add(e1c.collid.events, ev)
+                        end
+                        if e2c.collid.sensor == true then
+                            add(e2c.collid.events, ev)
+                        end
+                    else
+                        -- non-sensor respects dynamic/static
+                        if e1c.collid.dynamic == true then
+                            add(e1c.collid.events, ev)
+                        end
+                        if e2c.collid.dynamic == true then
+                            add(e2c.collid.events, ev)
+                        end
+                    end
                 end
             end
         end
