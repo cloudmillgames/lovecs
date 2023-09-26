@@ -311,6 +311,16 @@ function CollectEntitiesWith(comps)
 	return ents
 end
 
+-- expensive, returns first entity found that has comps list
+function GetFirstEntityWith(comps)
+	for i in pairs(ecsEntities) do
+		if ecsCompIn(comps, ecsEntities[i].comps) then
+			return i
+		end
+	end
+	return nil
+end
+
 -- count how many entities are alive
 function CountLiveEntities()
 	local c=0
