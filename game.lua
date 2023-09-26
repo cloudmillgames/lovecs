@@ -7,8 +7,7 @@ LEFT = 4
 
 ORG_WIDTH = 256.0
 ORG_HEIGHT = 224.0
-SCALE_X = 3.0
-SCALE_Y = 3.0
+SCALE = 3.0
 MAP_START_X = 16.0
 MAP_START_Y = 16.0
 MAP_TILES_COLUMNS = 23
@@ -16,9 +15,9 @@ MAP_TILES_ROWS = 13
 MAP_TILE_WIDTH = 16
 MAP_TILE_HEIGHT = 16
 ARENA_BG_COLOR = {.4, .4, .4, 1}
-SC_TILE_WIDTH = MAP_TILE_WIDTH * SCALE_X
-SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE_Y
-SC_MAP_RECT = {MAP_START_X * SCALE_X, MAP_START_Y * SCALE_Y, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE_X, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE_Y}
+SC_TILE_WIDTH = MAP_TILE_WIDTH * SCALE
+SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
+SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE}
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
 
 LAYER_BG = 1
@@ -27,18 +26,19 @@ LAYER_TANKS = 3
 LAYER_PLAYER = 4
 LAYER_EFFECTS = 5
 LAYER_UI = 6
+LAYER_DEBUG = 100
 
 function MAP_TO_COORD_X(column)
 	if column > MAP_TILES_COLUMNS or column < 1 then
 		error("Invalid Map column: "..column)
 	end
-	return column * MAP_TILE_WIDTH * SCALE_X
+	return column * MAP_TILE_WIDTH * SCALE
 end
 function MAP_TO_COORD_Y(row)
 	if row > MAP_TILES_ROWS or row < 1 then
 		error("Invalid Map row: "..row)
 	end
-	return row * MAP_TILE_HEIGHT * SCALE_Y
+	return row * MAP_TILE_HEIGHT * SCALE
 end
 
 ----------------- Define components
@@ -108,9 +108,24 @@ DefineComponent("arena_bg", CArenaBG)
 -- All tanks have this comp
 CTank = {
 	type = 0,			-- refers to row in tanks spritesheet
-	chain_tick = 0		-- ticks 0,1 to move chain
+	chain_tick = 0,		-- ticks 0,1 to move chain
+	chain_timer = 0,	-- counts time for chain tick
+	chain_period = 0.06,-- time between chain ticks
+	throttle = false,	-- true means tank should move
+	speed = 30,
 }
 DefineComponent("tank", CTank)
+
+CMapTile = {
+	type = 1
+}
+DefineComponent("maptile", CMapTile)
+
+CFPSCounter = {
+	frame_timer = 0,
+	frame_count = 0,
+}
+DefineComponent("fpscounter", CFPSCounter)
 
 
 ----------------- Define update systems
@@ -122,44 +137,70 @@ USInit = function(ent)
 		Res.LoadImagesPack(RES_IMAGES)
 		Res.LoadSpritesheetsPack(RES_SPRITESHEETS)
 	end
-	local def_text = function()
-		local te = SpawnEntity({"pos", "text"})
+	local def_fps = function()
+		local te = SpawnEntity({"pos", "text", "fpscounter"})
 		local pc = GetEntComp(te, "pos")
-		pc.x = 100
-		pc.y = 40
+		pc.x = 1230
+		pc.y = 2
 		local tc = GetEntComp(te, "text")
-		tc.text = "Hello Universe!"
+		tc.text = "<FPS>"
 	end
-	local def_spr = function()
-		local se = SpawnEntity({"pos", "img"})
+	local def_goal = function()
+		local se = SpawnEntity({"pos", "animspr"})
 		local pc = GetEntComp(se, "pos")
-		local sc = GetEntComp(se, "img")
-		pc.x = 500
-		pc.y = 200
-		sc.name = "santa"
-		sc.scalex = 4
-		sc.scaley = 4
+		local sc = GetEntComp(se, "animspr")
+		pc.x = MAP_TO_COORD_X(12)
+		pc.y = MAP_TO_COORD_Y(13)
+		sc.spritesheet = "icons"
+		sc.curr_frame = 3
+		sc.scalex = SCALE
+		sc.scaley = SCALE
 	end
 	local def_player = function()
 		local se = SpawnEntity({"pos", "animspr", "player", "dir", "tank"})
 		local pc = GetEntComp(se, "pos")
 		local ac = GetEntComp(se, "animspr")
 		local tc = GetEntComp(se, "tank")
-		pc.x = MAP_TO_COORD_X(12)
+		pc.x = MAP_TO_COORD_X(10)
 		pc.y = MAP_TO_COORD_Y(13)
 		ac.spritesheet="tanks"
-		ac.scalex = SCALE_X
-		ac.scaley = SCALE_Y
+		ac.scalex = SCALE
+		ac.scaley = SCALE
 		ac.color = PLAYER_COLOR
 	end
 	local def_bg = function()
 		local se = SpawnEntity({"arena_bg"})
 	end
+	local def_map = function(mapnum)
+		-- Load map tiles
+		local m = RES_MAPS[mapnum]
+		local tl = ""
+		for j=1,MAP_TILES_ROWS * 2 do
+			for i=1,MAP_TILES_COLUMNS * 2 do
+				local idx = ((j - 1) * MAP_TILES_COLUMNS * 2) + i
+				if m[idx] ~= 0 then
+					local se = SpawnEntity({"maptile", "pos"})
+					local comps = GetEntComps(se)
+					comps.maptile.type = m[idx]
+					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
+					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
+				end
+				if m[idx] > 0 then
+					tl = tl..tostring(m[idx]).." "
+				else
+					tl = tl..". "
+				end
+			end
+			tl = tl.."\n"
+		end
+		print(tl)
+	end
 	load_resources()
-	--def_text()
-	--def_spr()
+	def_fps()
+	def_goal()
 	def_bg()
 	def_player()
+	def_map(1)
 	-- init only runs once
 	KillEntity(ent)
 end
@@ -174,16 +215,50 @@ USPlayerUpdate = function(ent)
 end
 DefineUpdateSystem({"player", "dir"}, USPlayerUpdate)
 
+USTankThrottle = function(ent)
+	local comps = GetEntComps(ent)
+	comps.tank.throttle = (btn.up and comps.dir.dir == UP) or (btn.right and comps.dir.dir == RIGHT) or (btn.down and comps.dir.dir == DOWN) or (btn.left and comps.dir.dir == LEFT)
+end
+DefineUpdateSystem({"player", "dir", "tank"}, USTankThrottle)
+
 USTankUpdate = function(ent)
 	local comps = GetEntComps(ent)
 	-- Update frame to match direction and chain tick
 	local tt = comps.tank.type
 	local td = comps.dir.dir
 	comps.animspr.curr_frame = (tt * 8) + 1 + (td - 1) * 2 + comps.tank.chain_tick
-	-- Update chain tick
-	comps.tank.chain_tick = 1 - comps.tank.chain_tick
+	if comps.tank.throttle then
+		-- Update chain tick
+		comps.tank.chain_timer = comps.tank.chain_timer + DeltaTime
+		if comps.tank.chain_timer >= comps.tank.chain_period then
+			comps.tank.chain_timer = comps.tank.chain_timer - comps.tank.chain_period
+			comps.tank.chain_tick = 1 - comps.tank.chain_tick
+		end
+		-- Move
+		if comps.dir.dir == UP then
+			comps.pos.y = comps.pos.y - comps.tank.speed * SCALE * DeltaTime
+		elseif comps.dir.dir == RIGHT then
+			comps.pos.x = comps.pos.x + comps.tank.speed * SCALE * DeltaTime
+		elseif comps.dir.dir == LEFT then
+			comps.pos.x = comps.pos.x - comps.tank.speed * SCALE * DeltaTime
+		elseif comps.dir.dir == DOWN then
+			comps.pos.y = comps.pos.y + comps.tank.speed * SCALE * DeltaTime
+		end
+	end
 end
-DefineUpdateSystem({"tank", "animspr", "dir"}, USTankUpdate)
+DefineUpdateSystem({"tank", "animspr", "dir", "pos"}, USTankUpdate)
+
+USFPSCounter = function(ent)
+	local comps = GetEntComps(ent)
+	comps.fpscounter.frame_count = comps.fpscounter.frame_count + 1
+	comps.fpscounter.frame_timer = comps.fpscounter.frame_timer + DeltaTime
+	if comps.fpscounter.frame_timer >= 1.0 then
+		comps.text.text = tostring(comps.fpscounter.frame_count)
+		comps.fpscounter.frame_count = 0
+		comps.fpscounter.frame_timer = comps.fpscounter.frame_timer - 1.0
+	end
+end
+DefineUpdateSystem({"fpscounter", "text"}, USFPSCounter)
 
 -- Deprecated: this counts in frames not DeltaTime
 USAnimSpr_Cycle = function(ent)
@@ -233,6 +308,14 @@ DSArenaBGDrawer = function(ent)
 	Draw.rectangle(LAYER_BG, "fill", SC_MAP_RECT[1], SC_MAP_RECT[2], MAP_TILES_COLUMNS * SC_TILE_WIDTH, MAP_TILES_ROWS * SC_TILE_HEIGHT)
 end
 DefineDrawSystem({"arena_bg"}, DSArenaBGDrawer)
+
+DSMapTilesDrawer = function(ent)
+	local comps = GetEntComps(ent)
+	local img = Res.GetImage("ss")
+	local ss = Res.GetSpritesheet("tiles")
+	Draw.drawQuad(LAYER_MAP, img, ss.quads[comps.maptile.type + 1], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
+end
+DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
 
 ----------------- Create entities
 ents = {
