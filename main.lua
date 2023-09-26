@@ -236,6 +236,7 @@ end
 function _draw() 
 	DrawECS()
 	Draw.exec()
+	Collision.draw()
 end
 
 ---------------- Game
@@ -309,7 +310,6 @@ end
 
 function love.draw()
 	_draw()
-	Collision.draw()
 	
 	-- boring white
     --love.graphics.rectangle('fill', 10,10,790,285)

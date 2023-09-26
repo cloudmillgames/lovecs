@@ -82,7 +82,7 @@ Collision.ID = {
     ent = 0,        -- reference to owner entity
     dynamic = true, -- static vs dynammic shapes
     layer = 0,      -- collision only calculated between different layers
-    evt = {}        -- events queue for current frame
+    events = {}     -- events queue for current frame
 }
 DefineComponent("collid", Collision.ID)
 
@@ -158,7 +158,7 @@ Collision.run = function()
     -- Clear prev events
     for i=1,#ents do
         local c = GetEntComps(ents[i])
-        c.collid.evt = {}
+        c.collid.events = {}
     end
 
     -- Run collision detection
@@ -172,8 +172,8 @@ Collision.run = function()
                 col = Collision.collideShape[e1c.collshape.type][e2c.collshape.type](e1c.pos, e2c.pos, e1c.collshape, e2c.collshape)
                 if col then
                     local ev = {e1, e2}
-                    add(e1c.collid.evt, ev)
-                    add(e2c.collid.evt, ev)
+                    add(e1c.collid.events, ev)
+                    add(e2c.collid.events, ev)
                 end
             end
         end

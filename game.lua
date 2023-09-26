@@ -139,12 +139,9 @@ CCollSensor = {
 DefineComponent("collsensor", CCollSensor)
 
 -- References 4 sensors each in the 4 cartesian directions (no diagonals)
--- Use to check whether you can move in that direction
+-- Use to check whether you can move in that direction. UP RIGHT DOWN LEFT
 CMotionSensor4 = {
-	up = 0,
-	right = 0,
-	down = 0,
-	left = 0
+	sensors = {}
 }
 DefineComponent("motionsensor4", CMotionSensor4)
 
@@ -188,9 +185,9 @@ USInit = function(ent)
 		local comps = GetEntComps(entity)
 		local sensors = {}
 		for i=1,4 do
-			local s = SpawnEntity({"dbgname", "collsensor", "pos", "poslink", "collshape", "collid"})
+			local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid"})
 			local c = GetEntComps(s)
-			c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
+			--c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
 			c.poslink.parent = entity
 			c.collshape.type = SHAPE_RECT
 			c.collshape.x = comps.collshape.x
@@ -201,14 +198,15 @@ USInit = function(ent)
 			c.collid.layer = comps.collid.layer
 			add(sensors, s)
 		end
-		local up_shape = GetEntComp(sensors[1], "collshape")
+		local up_shape = GetEntComp(sensors[UP], "collshape")
 		up_shape.y = decr(up_shape.y, step)
-		local right_shape = GetEntComp(sensors[2], "collshape")
+		local right_shape = GetEntComp(sensors[RIGHT], "collshape")
 		right_shape.x = incr(right_shape.x, step)
-		local down_shape = GetEntComp(sensors[3], "collshape")
+		local down_shape = GetEntComp(sensors[DOWN], "collshape")
 		down_shape.y = incr(down_shape.y, step)
-		local left_shape = GetEntComp(sensors[4], "collshape")
+		local left_shape = GetEntComp(sensors[LEFT], "collshape")
 		left_shape.x = decr(left_shape.x, step)
+		comps.motionsensor4.sensors = sensors
 	end
 	local def_player = function()
 		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid", "motionsensor4"})
@@ -291,13 +289,20 @@ DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
+		-- Check for input throttle
 		comps.tank.throttle = (btn.up and comps.dir.dir == UP) or (btn.right and comps.dir.dir == RIGHT) or (btn.down and comps.dir.dir == DOWN) or (btn.left and comps.dir.dir == LEFT)
+
 		if comps.tank.throttle then
-			comps.tank.moving = TANK_STEP
+			-- Check motion sensor for clear movement
+			local sensor = comps.motionsensor4.sensors[comps.dir.dir]
+			local sensor_comps = GetEntComps(sensor)
+			if #sensor_comps.collid.events == 0 then
+				comps.tank.moving = TANK_STEP
+			end
 		end
 	end
 end
-DefineUpdateSystem({"player", "dir", "tank"}, USTankThrottle)
+DefineUpdateSystem({"player", "dir", "tank", "motionsensor4"}, USTankThrottle)
 
 USTankUpdate = function(ent)
 	local comps = GetEntComps(ent)
@@ -353,11 +358,11 @@ DefineUpdateSystem({"fpscounter", "text"}, USFPSCounter)
 USCollisionDebug = function(ent)
 	if Collision.DEBUG then
 		local c = GetEntComps(ent)
-		for i=1,#c.collid.evt do
-			local other = c.collid.evt[i][1] == ent and 2 or 1
-			other = c.collid.evt[i][other]
+		for i=1,#c.collid.events do
+			local other = c.collid.events[i][1] == ent and 2 or 1
+			other = c.collid.events[i][other]
 			local cc = GetEntComps(other)
-			if not IsDeadEntity(other) then
+			if not IsDeadEntity(other) and HasEntComp(ent, "dbgname") and HasEntComp(other, "dbgname") then
 				print("COLLISION between "..c.dbgname.name.." and "..cc.dbgname.name)
 			end
 		end
