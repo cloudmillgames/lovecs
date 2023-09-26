@@ -65,9 +65,10 @@ LAYER_MAP = 20
 LAYER_OBJECTS = 25
 LAYER_TANKS = 30
 LAYER_PLAYER = 40
-LAYER_EFFECTS = 50
-LAYER_PROJECTILES = 60
-LAYER_PLAYER_PROJECTILES = 61
+LAYER_PROJECTILES = 50
+LAYER_PLAYER_PROJECTILES = 55
+LAYER_OVERMAP = 57
+LAYER_EFFECTS = 60
 LAYER_UI = 70
 LAYER_SCREEN = 80
 LAYER_DEBUG = 100
@@ -311,6 +312,7 @@ Small_Explosion = function(pos)
 	c.animspr.spritesheet = "small_explosion"
 	c.animspr.scalex = SCALE
 	c.animspr.scaley = SCALE
+	c.animspr.layer = LAYER_EFFECTS
 
 	c.animspr_onecycle.frametime = 0.05
 end
@@ -329,6 +331,7 @@ Big_Explosion = function(pos)
 	c.animspr.spritesheet = "explosion"
 	c.animspr.scalex = SCALE
 	c.animspr.scaley = SCALE
+	c.animspr.layer = LAYER_EFFECTS
 
 	c.animspr_onecycle.frametime = 0.2
 

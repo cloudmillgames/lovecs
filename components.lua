@@ -37,7 +37,8 @@ CImg = {
 	name="",
 	orient=0.0,
 	scalex=1,
-	scaley=1
+	scaley=1,
+	layer=LAYER_UI
 }
 ECS:DefineComponent("img", CImg)
 
@@ -81,6 +82,7 @@ CAnimSpr = {
 	scalex=1,
 	scaley=1,
 	color=nil,
+	layer = LAYER_PLAYER,
 	-- Specifies range of frames in spritesheet
 	frame_start = 1,-- what's first frame in spritesheet
 	frame_end = -1	-- < 1 means last frame

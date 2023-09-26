@@ -105,13 +105,21 @@ USInitGame = function(ent)
 			for i=1,MAP_TILES_COLUMNS * 2 do
 				local idx = ((j - 1) * MAP_TILES_COLUMNS * 2) + i
 				local tiletype = tonumber(m[idx])
+				local collidable = tiletype == TILE_BRICK or tiletype == TILE_STONE or tiletype == TILE_WATER
 				-- collmap
-				add(collmap.matrix, tiletype)
+				if collidable then
+					add(collmap.matrix, tiletype)
+				else
+					add(collmap.matrix, 0)
+				end
 				-- tile
 				if tiletype ~= 0 then
-					local se = ECS:SpawnEntity({"dbgname", "maptile", "collid", "pos"})
+					local se = ECS:SpawnEntity({"dbgname", "maptile", "pos"})
 					collmap.ent_matrix[idx] = se
 
+					if collidable then
+						ECS:EntAddComp(se, "collid")
+					end
 					local comps = ECS:GetEntComps(se)
 
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
@@ -124,10 +132,12 @@ USInitGame = function(ent)
 					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
 					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
 
-					comps.collid.ent = se
-					comps.collid.dynamic = false
-					comps.collid.layer = LAYER_MAP
-					comps.collid.custom = tiletype
+					if collidable then
+						comps.collid.ent = se
+						comps.collid.dynamic = false
+						comps.collid.layer = LAYER_MAP
+						comps.collid.custom = tiletype
+					end
 				end
 				if tiletype > 0 then
 					tl = tl..tostring(tiletype).." "

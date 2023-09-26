@@ -10,7 +10,7 @@ ECS:DefineDrawSystem({"pos", "text"}, DSTextDrawer)
 
 DSImageDrawer = function(ent)
 	local comps = ECS:GetEntComps(ent)
-	Draw.drawImage(LAYER_EFFECTS, Res.GetImage(comps.img.name), comps.pos.x, comps.pos.y, comps.img.orient, comps.img.scalex, comps.img.scaley)
+	Draw.drawImage(comps.img.layer, Res.GetImage(comps.img.name), comps.pos.x, comps.pos.y, comps.img.orient, comps.img.scalex, comps.img.scaley)
 end
 ECS:DefineDrawSystem({"pos", "img"}, DSImageDrawer)
 
@@ -32,7 +32,7 @@ DSAnimSpriteDrawer = function(ent)
 	if comps.animspr.color then
 		Draw.setColor(comps.animspr.color)
 	end
-	Draw.drawQuad(LAYER_PLAYER, img, ss.quads[comps.animspr.curr_frame], comps.pos.x, comps.pos.y, comps.animspr.orient, comps.animspr.scalex, comps.animspr.scaley)
+	Draw.drawQuad(comps.animspr.layer, img, ss.quads[comps.animspr.curr_frame], comps.pos.x, comps.pos.y, comps.animspr.orient, comps.animspr.scalex, comps.animspr.scaley)
 end
 ECS:DefineDrawSystem({"pos", "animspr"}, DSAnimSpriteDrawer)
 
@@ -55,7 +55,11 @@ DSMapTilesDrawer = function(ent)
 	local comps = ECS:GetEntComps(ent)
 	local img = Res.GetImage("ss")
 	local ss = Res.GetSpritesheet("tiles")
-	Draw.drawQuad(LAYER_MAP, img, ss.quads[comps.maptile.type + 1], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
+	local layer = LAYER_MAP
+	if comps.maptile.type == TILE_GRASS then
+		layer = LAYER_OVERMAP
+	end
+	Draw.drawQuad(layer, img, ss.quads[comps.maptile.type + 1], comps.pos.x, comps.pos.y, 0, SCALE, SCALE)
 end
 ECS:DefineDrawSystem({"maptile", "pos"}, DSMapTilesDrawer)
 
