@@ -188,9 +188,11 @@ Collision.run = function()
     local number_to_map = function(n, tw)
         return math.floor(n / tw) + 1
     end
+
     local point_to_map_coords = function(x, y, tw, th)
         return math.floor(x / tw) + 1, math.floor(y / th) + 1
     end
+
     -- checks a tile for collision and returns maptile entity there
     local check_tile_collision = function(cm, column, row)
         local ix = ((row - 1) * cm.columns) + column
@@ -200,6 +202,7 @@ Collision.run = function()
         end
         return 0
     end
+
     -- If collision, returns map tile entity (>0), if not returns 0
     local point_collides_map = function(cm, x, y, tw, th)
         local column, row = point_to_map_coords(x, y, tw, th)
@@ -208,6 +211,7 @@ Collision.run = function()
         end
         return 0
     end
+
     -- Ideally, there should be one map collider only
     for _,cment in pairs(collmap_ents) do
         collmap = GetEntComp(cment, "collmap")
@@ -220,6 +224,7 @@ Collision.run = function()
                 if e1c.collshape.type == SHAPE_POINT then
                     -- point to maptile collision
                     e2 = point_collides_map(collmap, e1c.collshape.x - collmap.map_rect.x, e1c.collshape.y - collmap.map_rect.y, collmap.tile_.tile_size[1], collmap.tile_size[2])
+                    add(e1c.collid.events, {e2, e1})
                 elseif e1c.collshape.type == SHAPE_RECT then
                     -- scan all vert/horiz maptiles that intersect rect
                     local x1 = number_to_map(e1c.pos.x + e1c.collshape.x - collmap.map_rect.x + 1, collmap.tile_size[1])
@@ -232,21 +237,14 @@ Collision.run = function()
                             if is_between(x, 1, collmap.columns) and is_between(y, 1, collmap.rows) then
                                 e2 = check_tile_collision(collmap, x, y)
                                 if e2 > 0 then
-                                    break
+                                    add(e1c.collid.events, {e2, e1})
+                                    e2 = 0
                                 end
                             end
-                        end
-                        if e2 > 0 then
-                            break
                         end
                     end
                 elseif e1c.collshape.type == SHAPE_CIRCLE then
                     error("Map collider against circles is unimplemented")
-                end
-
-                if e2 > 0 then
-                    add(e1c.collid.events, {e2, e1})
-                    print("MAP COLLISION: "..tostring(e2).." -> "..tostring(e1))
                 end
             end
         end
