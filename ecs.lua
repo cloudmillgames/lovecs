@@ -154,6 +154,7 @@ end
 
 function DefineComponent(name, comp_data) 
 	assert(name, comp_data)
+	assert(type(name), "string")
 	ecsComponents[name] = comp_data
 end 
 
