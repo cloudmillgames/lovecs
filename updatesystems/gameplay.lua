@@ -104,10 +104,11 @@ USInitGame = function(ent)
 		for j=1,MAP_TILES_ROWS * 2 do
 			for i=1,MAP_TILES_COLUMNS * 2 do
 				local idx = ((j - 1) * MAP_TILES_COLUMNS * 2) + i
+				local tiletype = tonumber(m[idx])
 				-- collmap
-				add(collmap.matrix, m[idx])
+				add(collmap.matrix, tiletype)
 				-- tile
-				if m[idx] ~= 0 then
+				if tiletype ~= 0 then
 					local se = ECS:SpawnEntity({"dbgname", "maptile", "collid", "pos"})
 					collmap.ent_matrix[idx] = se
 
@@ -115,7 +116,7 @@ USInitGame = function(ent)
 
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
 
-					comps.maptile.type = m[idx]
+					comps.maptile.type = tiletype
 					comps.maptile.collmap = collmap_ent
 					comps.maptile.column = i
 					comps.maptile.row = j
@@ -126,10 +127,10 @@ USInitGame = function(ent)
 					comps.collid.ent = se
 					comps.collid.dynamic = false
 					comps.collid.layer = LAYER_MAP
-					comps.collid.custom = m[idx]
+					comps.collid.custom = tiletype
 				end
-				if m[idx] > 0 then
-					tl = tl..tostring(m[idx]).." "
+				if tiletype > 0 then
+					tl = tl..tostring(tiletype).." "
 				else
 					tl = tl..". "
 				end
