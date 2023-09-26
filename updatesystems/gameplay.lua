@@ -600,7 +600,7 @@ USGameOver = function(ent)
 	pc.move4.duration = 2
 
 	pc.delayedfunc.delay = 4
-	pc.delayedfunc.func = Construct_GameOver
+	pc.delayedfunc.func = Construct_EndStage
 
 	ECS:KillEntity(ent)
 end

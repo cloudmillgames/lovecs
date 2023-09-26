@@ -201,20 +201,32 @@ end
 Next_Stage = function(ent)
 	local plrsession_ent = MAIN:GetTaggedEnt("plrsession")
 	local plrsession = MAIN:GetEntComp(plrsession_ent, "plrsession")
-	plrsession.stage = plrsession.stage + 1
-	if plrsession.stage > 35 then
-		-- TODO maybe end the game instead? credits or something
-		plrsession.stage = 1
+
+	if plrsession.lives > 0 then
+		plrsession.stage = plrsession.stage + 1
+		if plrsession.stage > 35 then
+			-- TODO maybe end the game instead? credits or something
+			plrsession.stage = 1
+		end
+		plrsession.kills = {}
+		Construct_LevelScreen()
+	else
+		Construct_GameOver()
 	end
-	plrsession.kills = {}
-	Construct_LevelScreen()
 end
 
 Construct_Gameplay = function()
 	local se = ECS:SpawnEntity({"initgame"})
 end
 
-Construct_Victory = function()
+Construct_EndStage = function()
+	local stagestate = ECS:GetTaggedEntComp("stagestate", "stagestate")
+	assert(stagestate, "Stage state has to be defined at this point")
+	if stagestate.gameover then
+		-- Since gameover, set lives to 0
+		local plrsession = MAIN:GetTaggedEntComp("plrsession", "plrsession")
+		plrsession.lives = 0
+	end
 	StopAllSounds()
 	ECS:KillAllEntities()
 	local se = ECS:SpawnEntity({"initscore"})
@@ -599,7 +611,7 @@ Trigger_Victory = function()
 	if state.victory == false then
 		local action_victory = ECS:SpawnEntity({"delayedfunc"})
 		local ac = ECS:GetEntComps(action_victory)
-		ac.delayedfunc.func = Construct_Victory
+		ac.delayedfunc.func = Construct_EndStage
 		ac.delayedfunc.delay = 4
 
 		state.victory = true
