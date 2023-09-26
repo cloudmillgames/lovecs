@@ -153,22 +153,23 @@ function DrawECS()
 end
 
 function DefineComponent(name, comp_data) 
-	assert(name, comp_data)
-	assert(type(name), "string")
+	assert(name, "Name invalid: "..tostring(name))
+	assert(comp_data, "Component data invalid: "..tostring(comp_data))
+	assert(type(name) == "string", "Name not string: "..type(name))
 	ecsComponents[name] = comp_data
 end 
 
 function DefineUpdateSystem(comps_list, system_proc)
-	assert(comps_list)
-	assert(system_proc)
+	assert(comps_list, "Invalid comps list: "..tostring(comps_list))
+	assert(system_proc, "Invalid system proc: "..tostring(system_proc))
 	table.sort(comps_list)
 	local buckid = ecsGetBucket(comps_list)
 	add(ecsUSystems, {proc = system_proc, ent_buckid = buckid})
 end 
 
 function DefineDrawSystem(comps_list, system_proc)
-	assert(comps_list)
-	assert(system_proc)
+	assert(comps_list, "Invalid comps list: "..tostring(comps_list))
+	assert(system_proc, "Invalid system proc: "..tostring(system_proc))
 	table.sort(comps_list)
 	local buckid = ecsGetBucket(comps_list)
 	add(ecsDSystems, {proc = system_proc, ent_buckid = buckid})
@@ -195,26 +196,27 @@ end
 
 -- returns a dict of comp->data
 function GetEntComps(eid)
-	assert(eid)
+	assert(eid, "Invalid entity given: "..tostring(eid))
 	return ecsEntities[eid].cdata
 end
 
 -- returns dict of component data
 function GetEntComp(eid, comp_name)
-	assert(eid)
-	assert(comp_name)
+	assert(eid, "Invalid entity given: "..tostring(eid))
+	assert(comp_name, "Invalid component name given: "..tostring(comp_name))
 	return ecsEntities[eid].cdata[comp_name]
 end
 
 -- returns bool to check whether entity has component
 function HasEntComp(eid, comp_name)
-	assert(eid)
+	assert(eid, "Invalid entity given: "..tostring(eid))
 	return ecsEntities[eid].cdata[comp_name] ~= nil
 end
 
 -- Adds new comp to entity, 1 comp/name
 function EntAddComp(eid, comp_name)
-	assert(not ecsEntities[eid].cdata[comp_name] and ecsComponents[comp_name])
+	assert(not ecsEntities[eid].cdata[comp_name], "Ent has comp: "..tostring(comp_name))
+	assert(ecsComponents[comp_name], "Comp not defined: "..tostring(comp_name))
 	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
 	table.insert(ecsEntities[eid].comps, comp_name)
 	table.sort(ecsEntities[eid].comps)
@@ -222,9 +224,28 @@ function EntAddComp(eid, comp_name)
 	ecsRebucketEnt(eid, oldcomps, ecsEntities[eid].comps)
 end
 
+-- Adds a list of new components to entity: comp_names = {"comp1", "comp2", ..}
+function EntAddComps(eid, comp_names)
+	assert(type(comp_names) == "table", "comp_names not a table: "..type(comp_names))
+
+	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
+	for _, new_comp in pairs(comp_names) do
+		assert(ecsEntities[eid].cdata[new_comp] == nil, "Ent has comp: "..tostring(new_comp))
+		assert(ecsComponents[new_comp], "Comp not defined: "..tostring(new_comp))
+		table.insert(ecsEntities[eid].comps, new_comp)
+	end
+
+	table.sort(ecsEntities[eid].comps)
+
+	for _, new_comp in pairs(comp_names) do
+		ecsEntities[eid].cdata[new_comp] = ecsCreateComp(ecsComponents[new_comp])
+	end
+	ecsRebucketEnt(eid, oldcomps, ecsEntities[eid].comps)
+end
+
 -- Removes component from entity
 function EntRemComp(eid, comp_name)
-	assert(ecsEntities[eid].cdata[comp_name])
+	assert(ecsEntities[eid].cdata[comp_name], "Ent doesn't have comp: "..tostring(comp_name))
 	local oldcomps = ecsCloneTable(ecsEntities[eid].comps)
 	local newcomps = {}
 	for i=1,#oldcomps do
