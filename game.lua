@@ -170,6 +170,24 @@ Fire_Shell = function(ent, is_player)
 	end
 end
 
+-- pos = {x=N, y=N}
+Small_Explosion = function(pos)
+	local se = SpawnEntity({"animspr", "pos", "animspr_onecycle"})
+	local c = GetEntComps(se)
+
+	local sw = Res.GetSpriteWidth("small_explosion") * SCALE
+	local sh = Res.GetSpriteHeight("small_explosion") * SCALE
+
+	c.pos.x = pos.x - fround(sw / 2) - (1 * SCALE)	-- 1 * SCALE is shell width/height
+	c.pos.y = pos.y - fround(sh / 2) - (1 * SCALE)
+
+	c.animspr.spritesheet = "small_explosion"
+	c.animspr.scalex = SCALE
+	c.animspr.scaley = SCALE
+
+	c.animspr_onecycle.frametime = 0.05
+end
+
 GetMovementFromDir = function(dir)
 	if dir == UP then
 		return {x=0, y=-1}

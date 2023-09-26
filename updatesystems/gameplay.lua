@@ -241,7 +241,7 @@ USShellCollision = function(ent)
 			-- TODO detect type of map tile we collided with
 			KillEntity(ent)
 		elseif other_layer == LAYER_BG then	-- map boundaries
-			-- TODO spawn small explosion where we are
+			Small_Explosion(c.pos)
 			if player_shell then
 				PlaySound("solid_impact")
 			end

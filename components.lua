@@ -65,6 +65,13 @@ CAnimSpr = {
 }
 DefineComponent("animspr", CAnimSpr)
 
+-- animate sprite from first to last frame once then kills self entity
+CAnimSpr_OneCycle = {
+	frametime = 0.25,	-- time each frame lasts in seconds
+	_timer = 0.0
+}
+DefineComponent("animspr_onecycle", CAnimSpr_OneCycle)
+
 -- an animator for the animated sprite that cycles all frames
 -- Deprecated: this counts in frames not DeltaTime
 CAnimSpr_Cycle = {

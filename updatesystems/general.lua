@@ -45,6 +45,21 @@ USMsgOnButton = function(ent)
 end
 DefineUpdateSystem({"msg_on_button", "msg_dispatcher"}, USMsgOnButton)
 
+-- Plays animated sprite once then kills self entity
+USAnimSpr_OneCycle = function(ent)
+	local c = GetEntComps(ent)
+	c.animspr_onecycle._timer = c.animspr_onecycle._timer + DeltaTime
+	if c.animspr_onecycle._timer >= c.animspr_onecycle.frametime then
+		c.animspr_onecycle._timer = c.animspr_onecycle._timer - c.animspr_onecycle.frametime
+		if c.animspr.curr_frame >= Res.GetSpriteFramecount(c.animspr.spritesheet) then
+			KillEntity(ent)
+		else
+			c.animspr.curr_frame = c.animspr.curr_frame + 1
+		end
+	end
+end
+DefineUpdateSystem({"animspr", "animspr_onecycle"}, USAnimSpr_OneCycle)
+
 -- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)
 	local comps = GetEntComps(ent)
