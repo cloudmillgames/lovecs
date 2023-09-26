@@ -18,7 +18,9 @@ RES_SPRITESHEETS = {
 	spawn_effect = {"ss", {128, 80}, {64, 16}, {16, 16}},
 	shield_effect = {"ss", {192, 80}, {32, 16}, {16, 16}},
 	pickup_items = {"ss", {160, 208}, {96, 16}, {16, 16}},
-	score_popups = {"ss", {176, 224}, {80, 16}, {16, 16}}
+	score_popups = {"ss", {176, 224}, {80, 16}, {16, 16}},
+	small_gameover = {"ss", {223, 0}, {32, 32}, {32, 32}},
+	gameover = {"ss", {128, 128}, {128, 80}, {128, 80}}
 }
 
 RES_SOUNDEFFECTS = {
