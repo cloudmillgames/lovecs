@@ -203,6 +203,12 @@ function GetEntComp(eid, comp_name)
 	return ecsEntities[eid].cdata[comp_name]
 end
 
+-- returns bool to check whether entity has component
+function HasEntComp(eid, comp_name)
+	assert(eid)
+	return ecsEntities[eid].cdata[comp_name] ~= nil
+end
+
 -- Adds new comp to entity, 1 comp/name
 function EntAddComp(eid, comp_name)
 	assert(not ecsEntities[eid].cdata[comp_name] and ecsComponents[comp_name])
