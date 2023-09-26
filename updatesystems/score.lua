@@ -153,7 +153,7 @@ USScoreCounter = function(ent)
                 scorecount.current_tank = scorecount.current_tank + 1
                 scorecount.total = scorecount.total + scorecount.count
                 scorecount.count = 0
-                scorecount.pausetimer = 1.0
+                scorecount.pausetimer = 0.5
             else
                 local nextstage = ECS:SpawnEntity({"delayedfunc"})
                 local nc = ECS:GetEntComps(nextstage)
