@@ -78,9 +78,14 @@ Res = {}
 Res.Images = {}
 Res.Spritesheets = {}
 Res.SoundEffects = {}
+
 Res.Init = function()
 end
 Res.LoadImage = function(name, path)
+	if Res.Images[name] ~= nil then
+		print("Image "..tostring(name).." already loaded")
+		return
+	end
 	local info = love.filesystem.getInfo(path)
 	if info == nil then
 		error("Res.LoadImage() path not found: "..path.."("..name..")")
@@ -101,6 +106,10 @@ Res.GetImage = function(name)
 	return Res.Images[name]
 end
 Res.LoadSpritesheet = function(name, data)
+	if Res.Spritesheets[name] ~= nil then
+		print("Spritesheet "..tostring(name).." already loaded")
+		return
+	end
 	-- tanks = {"ss", {0, 112}, {128, 128}, {16, 16}}
 	local img = Res.GetImage(data[1])
 	local startx = tonumber(data[2][1])
@@ -132,6 +141,10 @@ Res.LoadSpritesheetsPack = function(pack)
 	end
 end
 Res.LoadSoundEffect = function(name, file)
+	if Res.SoundEffects[name] ~= nil then
+		print("SoundEffect "..tostring(name).." already loaded")
+		return
+	end
 	Res.SoundEffects[name] = love.audio.newSource(file, "static")
 end
 Res.LoadSoundEffectsPack = function(pack)
