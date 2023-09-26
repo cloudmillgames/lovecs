@@ -271,7 +271,9 @@ USShellCollision = function(ent)
 		if ECS:IsDeadEntity(other) == false then
 			local other_collid = ECS:GetEntComp(other, "collid")
 			local other_layer = other_collid.layer
+
 			if other_layer == LAYER_MAP then -- map tiles
+				-- MAP TILES vs SHELL
 				local tile_type = other_collid.custom
 				-- All other types of tiles we ignore collision: grass, ice, water
 				if tile_type == TILE_BRICK then
@@ -292,13 +294,16 @@ USShellCollision = function(ent)
 					PlaySound("solid_impact")
 					ECS:KillEntity(ent)
 				end
-			elseif other_layer == LAYER_BG then	-- map boundaries
+
+			elseif other_layer == LAYER_BG then -- level boundaries
+				-- LEVEL BOUNDARIES vs SHELL
 				Small_Explosion(c.pos)
 				if player_shell then
 					PlaySound("solid_impact")
 				end
 				ECS:KillEntity(ent)
 			elseif other_layer == LAYER_OBJECTS then
+				-- LEVEL OBJECTS vs SHELL
 				if ECS:HasEntComp(other, "criticaltarget") then
 					-- Insta-death
 					local critdeath = ECS:SpawnEntity({"criticaldeath"})
@@ -308,19 +313,32 @@ USShellCollision = function(ent)
 					ECS:KillEntity(ent)
 				end
 			elseif player_shell == true and other_layer == LAYER_PROJECTILES then -- player shell vs enemy shell
-				-- Silently annihilate both
+				-- player SHELL vs SHELL
 				ECS:KillEntity(other)
 				ECS:KillEntity(ent)
 			elseif player_shell == true and other_layer == LAYER_TANKS then
-				-- enemy tank impact
+				-- player SHELL vs ENEMY TANK
 				Small_Explosion(c.pos)
 				PlaySound("big_explosion")
 				local othercomps = ECS:GetEntComps(other)
 				Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
+
+				-- Scoring
+				assert(othercomps.tank.type > 0 and othercomps.tank.type <= 4)
+				local scoregain_ent = ECS:SpawnEntity({"scoregain", "pos"})
+				local sgc = ECS:GetEntComps(scoregain_ent)
+				
+				sgc.scoregain.score = TANK_SCORES[othercomps.tank.type]
+				sgc.scoregain.tank_type = othercomps.tank.type
+
+				sgc.pos.x = othercomps.pos.x
+				sgc.pos.y = othercomps.pos.y
+
+				-- Clean up
 				ECS:KillEntity(other)
 				ECS:KillEntity(ent)
-				-- TODO scoring
 			elseif player_shell == false and other_layer == LAYER_PLAYER then
+				-- enemy SHELL vs PLAYER TANK
 				Small_Explosion(c.pos)
 				if ECS:HasEntComp(other, "player") then
 					-- player tank impact
@@ -372,7 +390,15 @@ ECS:DefineUpdateSystem({"dir", "tank", "motionsensor4"}, USTankThrottle)
 USTankUpdate = function(ent)
 	local comps = ECS:GetEntComps(ent)
 	-- Update frame to match direction and chain tick
-	local tt = comps.tank.type
+	local tank_type = comps.tank.type
+	local tt = 0
+	if tank_type == TANK_PLAYER then
+		-- TODO handle player tank level here 0 1 2 3
+		tt = TANK_PLAYER
+	elseif tank_type >= TANK_GRUNT then
+		-- TODO handle shielding colors for enemies here
+		tt = tank_type + 3
+	end
 	local td = comps.dir.dir
 	comps.animspr.curr_frame = (tt * 8) + 1 + (td - 1) * 2 + comps.tank.chain_tick
 	if comps.tank.moving > 0 then

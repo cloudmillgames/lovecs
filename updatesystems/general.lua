@@ -144,6 +144,15 @@ USDelayedFunc = function(ent)
 end
 ECS:DefineUpdateSystem({"delayedfunc"}, USDelayedFunc)
 
+USDelayedKill = function(ent)
+	local c = ECS:GetEntComp(ent, "delayedkill")
+	c.delay = c.delay - DeltaTime
+	if c.delay <= 0 then
+		ECS:KillEntity(ent)
+	end
+end
+ECS:DefineUpdateSystem({"delayedkill"}, USDelayedKill)
+
 -- Calls given function when button is pressed (==1), auto kills if kill_after > 0
 USButtonFunc = function(ent)
 	local c = ECS:GetEntComps(ent)

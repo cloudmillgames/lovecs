@@ -6,6 +6,7 @@
 CMainPlayerSession = {
 	stage = 1,
 	score = 0,
-	lives = 3
+	lives = 3,
+	kills = {}	-- dict of [tank_type] = score
 }
 MAIN:DefineComponent("plrsession", CMainPlayerSession)

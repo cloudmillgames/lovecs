@@ -6,7 +6,7 @@ USInitStart = function(ent)
 	ECS:KillAllEntities()
 	MAIN:KillAllEntities()
 
-	local session = MAIN:SpawnEntity({"plrsession"})
+	local session = MAIN:SpawnEntity({"plrsession"}, "plrsession")
 	local session_data = MAIN:GetEntComp(session, "plrsession")
 
 	session_data.stage = START_STAGE

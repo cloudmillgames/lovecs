@@ -1,5 +1,6 @@
 -- ** Score Update Systems **
 
+-- Score screen after gameover or level complete
 USInitScore = function(ent)
 	love.graphics.setBackgroundColor(BLACK)
 
@@ -33,3 +34,41 @@ USInitScore = function(ent)
 
 end
 ECS:DefineUpdateSystem({"initscore"}, USInitScore)
+
+-- Player gained score (during gameplay)
+USScoreGained = function(ent)
+    local c = ECS:GetEntComps(ent)
+    local plrsession_ent = MAIN:GetTaggedEnt("plrsession")
+    assert(MAIN:IsAliveEntity(plrsession_ent), "At this point plrsession must be defined, but appears not to be?")
+    local plrsession = MAIN:GetEntComp(plrsession_ent, "plrsession")
+    print("SCOREGAIN SCORE = "..tostring(c.scoregain.score))
+    -- Add score and optionally tank_type to player session
+    plrsession.score = plrsession.score + c.scoregain.score
+    if c.scoregain.tank_type > 0 then
+        if plrsession.kills[c.scoregain.tank_type] == nil then
+            plrsession.kills[c.scoregain.tank_type] = 1
+        else
+            plrsession.kills[c.scoregain.tank_type] = plrsession.kills[c.scoregain.tank_type] + 1
+        end
+    end
+
+    -- Spawn score sprite
+    if c.scoregain.score >= 100 and c.scoregain.score <= 500 and math.fmod(c.scoregain.score, 100) == 0 then
+        local idx = math.floor(c.scoregain.score / 100)
+        local score_ent = ECS:SpawnEntity({"spr", "pos", "delayedkill"})
+        local sc = ECS:GetEntComps(score_ent)
+
+        sc.pos.x = c.pos.x
+        sc.pos.y = c.pos.y
+
+        sc.spr.spritesheet = "score_popups"
+        sc.spr.spriteid = idx
+        sc.spr.scalex = SCALE
+        sc.spr.scaley = SCALE
+        sc.spr.layer = LAYER_UI
+
+        sc.delayedkill.delay = 1.5
+    end
+    ECS:KillEntity(ent)
+end
+ECS:DefineUpdateSystem({"scoregain", "pos"}, USScoreGained)

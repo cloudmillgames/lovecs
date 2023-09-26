@@ -46,6 +46,20 @@ TANK_STEP = 4.0
 SHELL_SPEED = 100.0
 TURRET_COOLDOWN = 0.3
 
+-- Tank types
+TANK_PLAYER 	= 0	-- these nums r important, used to index sprites
+TANK_GRUNT 		= 1
+TANK_FAST		= 2
+TANK_AGGRO		= 3
+TANK_TOUGH		= 4
+
+TANK_SCORES = {
+	[TANK_GRUNT] 	= 100,
+	[TANK_FAST] 	= 200,
+	[TANK_AGGRO] 	= 300,
+	[TANK_TOUGH]	= 400
+}
+
 LAYER_BG = 10
 LAYER_MAP = 20
 LAYER_OBJECTS = 25
@@ -448,12 +462,15 @@ Construct_Tank = function(data)
 	local tank_color = data[2]
 	local tank_layer = data[3]
 	local dir = data[4]
+	local tank_type = data[5]
 	
 	-- Spawn tank
 	local se = ECS:SpawnEntity({"dbgname", "pos", "animspr", "dir", "tank", "collshape", "collid", "motionsensor4", "tankturret"})
 	local comps = ECS:GetEntComps(se)
 
 	comps.dbgname.name = "Tank_"..tostring(se)
+
+	comps.tank.type = tank_type
 
 	comps.animspr.spritesheet="tanks"
 	comps.animspr.scalex = SCALE
@@ -485,7 +502,7 @@ Construct_Tank = function(data)
 end
 
 -- Enemy or player doesn't care
-Spawn_ATank = function(zone, tank_color, tank_layer, dir)
+Spawn_ATank = function(zone, tank_color, tank_layer, dir, tank_type)
 	-- Spawn effect
 	local seffect = ECS:SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
 	local c = ECS:GetEntComps(seffect)
@@ -514,15 +531,15 @@ Spawn_ATank = function(zone, tank_color, tank_layer, dir)
 	local cc = ECS:GetEntComps(kfunc)
 
 	cc.killfunc.entity = seffect
-	cc.killfunc.funcbind = makeFunc(Construct_Tank, {zone, tank_color, tank_layer, dir})
+	cc.killfunc.funcbind = makeFunc(Construct_Tank, {zone, tank_color, tank_layer, dir, tank_type})
 end
 
 Spawn_EnemyTank = function(zone)
-	Spawn_ATank(zone, TANK_COLORS[1], LAYER_TANKS, DOWN)
+	Spawn_ATank(zone, TANK_COLORS[1], LAYER_TANKS, DOWN, TANK_GRUNT)
 end
 
 Spawn_PlayerTank = function(zone)
-	Spawn_ATank(zone, PLAYER_COLOR, LAYER_PLAYER, UP)
+	Spawn_ATank(zone, PLAYER_COLOR, LAYER_PLAYER, UP, TANK_PLAYER)
 end
 
 Trigger_GameOver = function()

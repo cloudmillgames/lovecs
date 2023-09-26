@@ -125,7 +125,7 @@ CTank = {
 	speed = 30,
 	moving = 0,			-- used to lock movement for TANK_STEP distance
 	move_delta_x = 0,	-- used to fix tank movement to TANK_STEPs
-	move_delta_y = 0,
+	move_delta_y = 0
 }
 ECS:DefineComponent("tank", CTank)
 
@@ -222,6 +222,12 @@ CDelayedFunc = {
     func = nil
 }
 ECS:DefineComponent("delayedfunc", CDelayedFunc)
+
+-- Simply kills entity after given delay in seconds
+CDelayedKill = {
+	delay = 1
+}
+ECS:DefineComponent("delayedkill", CDelayedKill)
 
 -- Calls function when button is pressed (==1)
 CButtonFunc = {
@@ -383,3 +389,10 @@ CMove4Skipper = {
 	skip_on = nil,	-- message name to skip on
 }
 ECS:DefineComponent("move4_skipper", CMove4Skipper)
+
+-- Gives score to player: player session and score sprite
+CScoreGain = {
+	score = 0,
+	tank_type = -1,	-- Which enemy tank? -1 means no enemy tank
+}
+ECS:DefineComponent("scoregain", CScoreGain)
