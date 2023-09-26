@@ -20,6 +20,15 @@ USKillMsg = function(ent)
 end
 DefineUpdateSystem({"killmsg"}, USKillMsg)
 
+-- Call function when entity dies, self kill after
+USKillFunc = function(ent)
+	local c = GetEntComps(ent)
+	if IsDeadEntity(c.killfunc.entity) then
+		callFunc(c.killfunc.funcbind)
+	end
+end
+DefineUpdateSystem({"killfunc"}, USKillFunc)
+
 -- Entity position linked to a parent position with an offset
 USPosLink = function(ent)
 	local comps = GetEntComps(ent)
@@ -97,14 +106,12 @@ USAnimSpr_PingPong = function(ent)
 		end
 		c.animspr.curr_frame = c.animspr.curr_frame + c.animspr_pingpong._direction
 	end
+
 	if c.animspr_pingpong.cycles == 0 then
-		if c.animspr_pingpong.end_msg ~= nil then
-			Msging.dispatchEntity(Msging.CHANNEL, c.animspr_pingpong.end_msg)
-		end
 		KillEntity(ent)
 	end
 end
-DefineUpdateSystem({"animspr", "animspr_pingpong", "msg_dispatcher"}, USAnimSpr_PingPong)
+DefineUpdateSystem({"animspr", "animspr_pingpong"}, USAnimSpr_PingPong)
 
 -- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)

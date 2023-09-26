@@ -34,6 +34,11 @@ CPlayer = {
 }
 DefineComponent("player", CPlayer)
 
+-- identify entity as enemy
+CEnemy = {
+}
+DefineComponent("enemy", CEnemy)
+
 -- identify shell as players
 CPlayerShell = {
 }
@@ -72,13 +77,12 @@ CAnimSpr_OneCycle = {
 }
 DefineComponent("animspr_onecycle", CAnimSpr_OneCycle)
 
--- animate sprite pingpong number of cycles then dispatch msg and kill self
+-- animate sprite pingpong number of cycles then kills self if cycles == 0
 CAnimSpr_PingPong = {
 	frametime = 0.25,
 	_timer = 0.0,
 	_direction = 1,		-- 1 or -1
-	cycles = 1,			-- pingpong count, -1 forever
-	end_msg = nil		-- if set and msg_dispatcher, dispatches end_msg when pingpong is done
+	cycles = 5,			-- pingpong count, -1 forever
 }
 DefineComponent("animspr_pingpong", CAnimSpr_PingPong)
 
@@ -249,6 +253,13 @@ CKillMsg = {
 	msg = "entity-died"
 }
 DefineComponent("killmsg", CKillMsg)
+
+-- Call function when entity dies, self kill after
+CKillFunc = {
+	entity = -1,		-- entity to watch
+	funcbind = nil,		-- {func=, data=}
+}
+DefineComponent("killfunc", CKillFunc)
 
 -- Spawns swarm of tanks across multiple spawn zones
 -- Monitors spawn zones to make sure they are clear when spawn is triggered

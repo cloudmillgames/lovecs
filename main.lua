@@ -81,6 +81,12 @@ function makeRect(_x, _y, _w, _h)
 		h = _h}
 end
 
+-- Utility to call funcbind = {func=myfunction, data={arg1,arg2,..})
+function callFunc(funcbind)
+	assert(type(funcbind.func) == "function")
+	return funcbind.func(funcbind.data)
+end
+
 ----------------- Resource system
 Res = {}
 Res.Images = {}
