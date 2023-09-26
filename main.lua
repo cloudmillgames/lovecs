@@ -73,6 +73,14 @@ function pointDist(p1, p2)
 	return math.sqrt(pointDistSqrd(p1, p2))
 end
 
+function makeRect(_x, _y, _w, _h)
+	return {
+		x = _x,
+		y = _y,
+		w = _w,
+		h = _h}
+end
+
 ----------------- Resource system
 Res = {}
 Res.Images = {}
