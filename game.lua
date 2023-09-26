@@ -124,6 +124,30 @@ CFPSCounter = {
 }
 DefineComponent("fpscounter", CFPSCounter)
 
+-- Follow position of another entity with offset
+CPosLink = {
+	parent = 0,
+	offsetx = 0,
+	offsety = 0
+}
+DefineComponent("poslink", CPosLink)
+
+-- Identifies entity as a collision sensor shape (used for MotionSensor)
+CCollSensor = {
+	collision = false
+}
+DefineComponent("collsensor", CCollSensor)
+
+-- References 4 sensors each in the 4 cartesian directions (no diagonals)
+-- Use to check whether you can move in that direction
+CMotionSensor4 = {
+	up = 0,
+	right = 0,
+	down = 0,
+	left = 0
+}
+DefineComponent("motionsensor4", CMotionSensor4)
+
 
 ----------------- Define update systems
 USInit = function(ent)
@@ -153,8 +177,41 @@ USInit = function(ent)
 		sc.scalex = SCALE
 		sc.scaley = SCALE
 	end
+	-- entity: to sense, must have motionsensor4, pos, collshape, collid
+	-- step: how far is the rect collider shifted in the 4 directions?
+	local def_vehicle_motion_sensor = function(entity, step)
+		assert(step ~= nil)
+		assert(HasEntComp(entity, "pos"))
+		assert(HasEntComp(entity, "collshape"))
+		assert(HasEntComp(entity, "collid"))
+		assert(HasEntComp(entity, "motionsensor4"))
+		local comps = GetEntComps(entity)
+		local sensors = {}
+		for i=1,4 do
+			local s = SpawnEntity({"dbgname", "collsensor", "pos", "poslink", "collshape", "collid"})
+			local c = GetEntComps(s)
+			c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
+			c.poslink.parent = entity
+			c.collshape.type = SHAPE_RECT
+			c.collshape.x = comps.collshape.x
+			c.collshape.y = comps.collshape.y
+			c.collshape.w = comps.collshape.w
+			c.collshape.h = comps.collshape.h
+			c.collid.ent = s
+			c.collid.layer = comps.collid.layer
+			add(sensors, s)
+		end
+		local up_shape = GetEntComp(sensors[1], "collshape")
+		up_shape.y = decr(up_shape.y, step)
+		local right_shape = GetEntComp(sensors[2], "collshape")
+		right_shape.x = incr(right_shape.x, step)
+		local down_shape = GetEntComp(sensors[3], "collshape")
+		down_shape.y = incr(down_shape.y, step)
+		local left_shape = GetEntComp(sensors[4], "collshape")
+		left_shape.x = decr(left_shape.x, step)
+	end
 	local def_player = function()
-		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid"})
+		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid", "motionsensor4"})
 		local comps = GetEntComps(se)
 
 		comps.dbgname.name = "Player_"..tostring(se)
@@ -173,6 +230,8 @@ USInit = function(ent)
 
 		comps.collid.ent = se
 		comps.collid.layer = LAYER_PLAYER
+
+		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
 	local def_bg = function()
 		local se = SpawnEntity({"arena_bg"})
@@ -305,6 +364,14 @@ USCollisionDebug = function(ent)
 	end
 end
 DefineUpdateSystem({"dbgname", "collshape", "collid", "pos"}, USCollisionDebug)
+
+USPosLink = function(ent)
+	local comps = GetEntComps(ent)
+	local parent_pos = GetEntComp(comps.poslink.parent, "pos")
+	comps.pos.x = parent_pos.x + comps.poslink.offsetx
+	comps.pos.y = parent_pos.y + comps.poslink.offsety
+end
+DefineUpdateSystem({"poslink", "pos"}, USPosLink)
 
 -- Deprecated: this counts in frames not DeltaTime
 USAnimSpr_Cycle = function(ent)
