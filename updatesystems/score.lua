@@ -144,7 +144,7 @@ USScoreCounter = function(ent)
             local points = scorecount.count * t * 100
             pc.bmptext.text = spaceText(tostring(points), 4)
         else
-            -- this extra update will write 0 kills tanks
+            -- this extra update will write total kills/score per tank (including 0)
             cc.bmptext.text = spaceText(tostring(scorecount.count), 2)..string.char(186)
             pc.bmptext.text = spaceText(tostring(scorecount.count * t * 100), 4)
 
@@ -154,6 +154,12 @@ USScoreCounter = function(ent)
                 scorecount.total = scorecount.total + scorecount.count
                 scorecount.count = 0
                 scorecount.pausetimer = 1.0
+            else
+                local nextstage = ECS:SpawnEntity({"delayedfunc"})
+                local nc = ECS:GetEntComps(nextstage)
+                nc.delayedfunc.delay = 3
+                nc.delayedfunc.func = Next_Stage
+                ECS:KillEntity(ent)
             end
         end
     end

@@ -383,7 +383,7 @@ CScoreCounter = {
 	current_tank = 1,
 	count = 0,
 	total = 0,
-	pausetimer = 2	-- initial timer pause for a bit before counting
+	pausetimer = 1	-- initial timer pause for a bit before counting
 }
 ECS:DefineComponent("scorecounter", CScoreCounter)
 

@@ -163,7 +163,7 @@ USInitGame = function(ent)
 	def_map(plrsession.stage)
 	def_ui()
 	def_screen_effect()
-	Construct_SpawnDirector()
+	Construct_SpawnDirector(2)
 	-- init only runs once
 	ECS:KillEntity(ent)
 end

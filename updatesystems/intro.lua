@@ -4,13 +4,6 @@
 USInitStart = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
 	ECS:KillAllEntities()
-	MAIN:KillAllEntities()
-
-	local session = MAIN:SpawnEntity({"plrsession"}, "plrsession")
-	local session_data = MAIN:GetEntComp(session, "plrsession")
-
-	session_data.stage = START_STAGE
-	session_data.lives = START_LIVES
 	
 	local def_fps = function()
 		local te = ECS:SpawnEntity({"pos", "text", "fpscounter"})

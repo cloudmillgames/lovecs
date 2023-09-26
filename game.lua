@@ -155,7 +155,7 @@ Construct_StartMenu = function(ent)
 	local mc = ECS:GetEntComps(menu)
 	mc.menucursor.places = places
 	-- 1 PLAYER, 2 PLAYER, CONSTRUCTION function calls
-	mc.menucursor.funcs = {Construct_LevelScreen, Construct_LevelScreen, Construct_LevelScreen}
+	mc.menucursor.funcs = {Start_New_Game, Start_New_Game, Start_New_Game}
 	mc.uianimspr.spritesheet = "icons"
 	mc.uianimspr.scalex = SCALE
 	mc.uianimspr.scaley = SCALE
@@ -164,21 +164,48 @@ Construct_StartMenu = function(ent)
 	mc.uianimspr.frametime = 0.1
 end
 
+Start_New_Game = function(ent)
+	MAIN:KillAllEntities()
+
+	local session = MAIN:SpawnEntity({"plrsession"}, "plrsession")
+	local session_data = MAIN:GetEntComp(session, "plrsession")
+
+	session_data.stage = START_STAGE
+	session_data.lives = START_LIVES
+
+	Construct_LevelScreen()
+end
+
 Construct_LevelScreen = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
 	ECS:KillAllEntities()
+
 	local def_text = function()
+		local plrsession = MAIN:GetTaggedEntComp("plrsession", "plrsession")
+		assert(plrsession, "Must have a value here: "..tostring(plrsession))
+
 		local se = ECS:SpawnEntity({"pos", "bmptext", "delayedfunc"})
 		local c = ECS:GetEntComps(se)
 		c.pos.x = (1280 / 2) - (8 * 5 * SCALE)
 		c.pos.y = (720 / 2) - 4
-		c.bmptext.text = "STAGE   "..tostring(START_STAGE)
+		c.bmptext.text = "STAGE   "..tostring(plrsession.stage)
 		c.bmptext.color = {0, 0, 0, 1}
 		c.delayedfunc.delay = 2
 		c.delayedfunc.func = Construct_Gameplay
 		Music.play("level_start")
 	end
 	def_text()
+end
+
+Next_Stage = function(ent)
+	local plrsession_ent = MAIN:GetTaggedEnt("plrsession")
+	local plrsession = MAIN:GetEntComp(plrsession_ent, "plrsession")
+	plrsession.stage = plrsession.stage + 1
+	if plrsession.stage > 35 then
+		-- TODO maybe end the game instead? credits or something
+		plrsession.stage = 1
+	end
+	Construct_LevelScreen()
 end
 
 Construct_Gameplay = function()
@@ -328,12 +355,12 @@ Time_Skip = function(ent)
 end
 
 -- Returns spawndirector entity for enemies
-Construct_SpawnDirector = function()
+Construct_SpawnDirector = function(total_spawns)
 	local se = ECS:SpawnEntity({"spawndirector"})
 	local c = ECS:GetEntComp(se, "spawndirector")
 
 	c.active = true
-	c.spawns = 20
+	c.spawns = total_spawns
 	c.cooldown = 2.0
 
 	local zones = {
