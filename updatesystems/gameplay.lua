@@ -13,15 +13,26 @@ USInitGame = function(ent)
 		tc.text = "<FPS>"
 	end
 	local def_goal = function()
-		local se = SpawnEntity({"pos", "animspr"})
-		local pc = GetEntComp(se, "pos")
-		local sc = GetEntComp(se, "animspr")
-		pc.x = MAP_TO_COORD_X(12)
-		pc.y = MAP_TO_COORD_Y(13)
-		sc.spritesheet = "icons"
-		sc.curr_frame = 3
-		sc.scalex = SCALE
-		sc.scaley = SCALE
+		local se = SpawnEntity({"pos", "animspr", "collid", "collshape"})
+		local c = GetEntComps(se)
+		
+		c.pos.x = MAP_TO_COORD_X(12)
+		c.pos.y = MAP_TO_COORD_Y(13)
+
+		c.animspr.spritesheet = "icons"
+		c.animspr.curr_frame = 3
+		c.animspr.scalex = SCALE
+		c.animspr.scaley = SCALE
+
+		c.collid.ent = se
+		c.collid.dynamic = false
+		c.collid.layer = LAYER_OBJECTS
+
+		c.collshape.type = SHAPE_RECT
+		c.collshape.x = 0
+		c.collshape.y = 0
+		c.collshape.w = 16 * SCALE
+		c.collshape.h = 16 * SCALE
 	end
 	local def_player = function()
 		local tank = Construct_Tank(PLAYER_COLOR, LAYER_PLAYER)
