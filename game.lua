@@ -154,6 +154,9 @@ USInit = function(ent)
 		Res.Init()
 		Res.LoadImagesPack(RES_IMAGES)
 		Res.LoadSpritesheetsPack(RES_SPRITESHEETS)
+		Res.LoadSoundEffectsPack(RES_SOUNDEFFECTS)
+		Res.SoundEffects["tank_idle"]:setLooping(true)
+		Res.SoundEffects["tank_moving"]:setLooping(true)
 	end
 	local def_fps = function()
 		local te = SpawnEntity({"pos", "text", "fpscounter"})
@@ -323,6 +326,19 @@ USPlayerUpdate = function(ent)
 		if btn.down then comps.dir.dir = DOWN end
 		if btn.left then comps.dir.dir = LEFT end
 		if btn.right then comps.dir.dir = RIGHT end
+	end
+
+	-- Tank engine
+	if comps.tank.moving == 0 then
+		if Res.SoundEffects["tank_moving"]:isPlaying() then
+			Res.SoundEffects["tank_moving"]:pause()
+		end
+		Res.SoundEffects["tank_idle"]:play()
+	else
+		if Res.SoundEffects["tank_idle"]:isPlaying() then
+			Res.SoundEffects["tank_idle"]:pause()
+		end
+		Res.SoundEffects["tank_moving"]:play()
 	end
 end
 DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
