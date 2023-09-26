@@ -154,12 +154,14 @@ end
 
 -- Get rid of all named dead entities, be as lazy as possible
 -- returns true if some ents found in that name, false if none found
-function ECS:_RefreshTaggedEnts(name)
-	local curr_ents = self._TaggedEnts[name]
+function ECS:_RefreshTaggedEnts(tag)
+	local curr_ents = self._TaggedEnts[tag]
+	-- If no ents tagged, skip
 	if curr_ents == nil then
 		return false
 	end
 
+	-- How many tagged ents are alive?
 	local count = 0
 	for _,e in pairs(curr_ents) do
 		if self._Entities[e] ~= nil then
@@ -167,17 +169,19 @@ function ECS:_RefreshTaggedEnts(name)
 		end
 	end
 
+	-- all tagged ents are dead, easy cleanup
 	if count == 0 then
-		self._TaggedEnts[name] = nil
+		self._TaggedEnts[tag] = nil
 		return false
 	end
 
+	-- tagged live ents changed, need to update tag then
 	if count < #curr_ents then
 		local new_ents = {}
 		for _,e in pairs(curr_ents) do
 			add(new_ents, e)
 		end
-		self._TaggedEnts[name] = new_ents
+		self._TaggedEnts[tag] = new_ents
 	end
 
 	return true
@@ -386,6 +390,15 @@ function ECS:GetTaggedEnt(tag)
 		for _, e in pairs(ents) do
 			return e
 		end
+	end
+	return nil
+end
+
+-- Get comp of first ent that matches tag name, nil if no match or no comp
+function ECS:GetTaggedEntComp(tag, comp)
+	local ent = self:GetTaggedEnt(tag)
+	if ent ~= nil and self:HasEntComp(ent, comp) then
+		return self:GetEntComp(ent, comp)
 	end
 	return nil
 end
