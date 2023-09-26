@@ -142,7 +142,7 @@ USInitGame = function(ent)
 	def_player()
 	def_map(STAGE)
 	def_screen_effect()
-	--Construct_SpawnDirector()
+	Construct_SpawnDirector()
 	-- init only runs once
 	KillEntity(ent)
 end
