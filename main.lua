@@ -77,6 +77,7 @@ end
 Res = {}
 Res.Images = {}
 Res.Spritesheets = {}
+Res.SoundEffects = {}
 Res.Init = function()
 end
 Res.LoadImage = function(name, path)
@@ -130,6 +131,15 @@ Res.LoadSpritesheetsPack = function(pack)
 		Res.LoadSpritesheet(k, v)
 	end
 end
+Res.LoadSoundEffect = function(name, file)
+	Res.SoundEffects[name] = love.audio.newSource(file, "static")
+end
+Res.LoadSoundEffectsPack = function(pack)
+	for k, v in pairs(pack) do
+		Res.LoadSoundEffect(k, v)
+	end
+end
+
 -- Returns: {image="img_name", framecount=N, quads={Quad,..}}
 Res.GetSpritesheet = function(name)
 	if Res.Spritesheets[name] == nil then
@@ -137,6 +147,9 @@ Res.GetSpritesheet = function(name)
 	end
 	return Res.Spritesheets[name]
 end
+
+----------------
+
 require('resources')
 require('maps')
 
