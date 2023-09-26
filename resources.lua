@@ -14,7 +14,11 @@ RES_SPRITESHEETS = {
 	icons = {"ss", {0, 80}, {96, 16}, {16, 16}},
 	bullets = {"ss", {48, 96}, {16, 4}, {4, 4}},
 	small_explosion = {"ss", {128, 96}, {48,16}, {16, 16}},
-	explosion = {"ss", {176, 96}, {64, 32}, {32, 32}}
+	explosion = {"ss", {176, 96}, {64, 32}, {32, 32}},
+	spawn_effect = {"ss", {128, 80}, {64, 16}, {16, 16}},
+	shield_effect = {"ss", {192, 80}, {32, 16}, {16, 16}},
+	pickup_items = {"ss", {160, 208}, {96, 16}, {16, 16}},
+	score_popups = {"ss", {176, 224}, {80, 16}, {16, 16}}
 }
 
 RES_SOUNDEFFECTS = {
