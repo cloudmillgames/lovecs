@@ -114,9 +114,20 @@ CTank = {
 DefineComponent("tank", CTank)
 
 CMapTile = {
-	type = 1
+	type = 1,
+	collmap = -1,	-- which collision map does this maptil belong to
+	column = 0,		-- Where in map matrix
+	row = 0
 }
 DefineComponent("maptile", CMapTile)
+
+-- Clear a tile from collision map associated with a maptile via column, row
+CCollisionMap_TileClear = {
+	collmap = -1,
+	column = 0,
+	row = 0
+}
+DefineComponent("maptile_clear", CCollisionMap_TileClear)
 
 CFPSCounter = {
 	frame_timer = 0,

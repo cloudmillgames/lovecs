@@ -2,7 +2,7 @@
 -- Initializes actual gameplay start
 USInitGame = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
-	KillAllEntities()
+	-- No need to kill all entities as level screen transition does it
 
 	local def_fps = function()
 		local te = SpawnEntity({"pos", "text", "fpscounter"})
@@ -38,8 +38,11 @@ USInitGame = function(ent)
 		for i=1,4 do
 			local be = SpawnEntity({"dbgname", "pos", "collshape", "collid"})
 			local comps = GetEntComps(be)
+
 			comps.dbgname.name = "Bound_"
+
 			comps.collshape.type = SHAPE_RECT
+
 			comps.collid.ent = be
 			comps.collid.dynamic = false
 			comps.collid.layer = LAYER_BG
@@ -50,6 +53,7 @@ USInitGame = function(ent)
 			y=SC_MAP_RECT[2] - SC_TILE_HEIGHT,
 			w=SC_MAP_RECT[3] + SC_TILE_WIDTH * 2,
 			h=SC_MAP_RECT[4] + SC_TILE_HEIGHT * 2}
+
 		local up_shape = GetEntComp(bounds[UP], "collshape")
 		up_shape.x = bound_rect.x
 		up_shape.y = bound_rect.y
@@ -101,14 +105,17 @@ USInitGame = function(ent)
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
 
 					comps.maptile.type = m[idx]
+					comps.maptile.collmap = collmap_ent
+					comps.maptile.column = i
+					comps.maptile.row = j
 
 					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
 					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
 
 					comps.collid.ent = se
 					comps.collid.dynamic = false
-					comps.layer = LAYER_MAP
-					comps.custom = m[idx]
+					comps.collid.layer = LAYER_MAP
+					comps.collid.custom = m[idx]
 				end
 				if m[idx] > 0 then
 					tl = tl..tostring(m[idx]).." "
@@ -249,6 +256,14 @@ USShellCollision = function(ent)
 				if tile_type == TILE_BRICK then
 					Small_Explosion(c.pos)
 					PlaySound("brick_destroy")
+
+					local maptile = GetEntComp(other_collid.ent, "maptile")
+					local clearer = SpawnEntity({"maptile_clear"})
+					local cmc = GetEntComp(clearer, "maptile_clear")
+					cmc.collmap = maptile.collmap
+					cmc.column = maptile.column
+					cmc.row = maptile.row
+
 					KillEntity(other)
 					KillEntity(ent)
 				elseif tile_type == TILE_STONE then
@@ -436,3 +451,14 @@ USEnemyControl = function(ent)
 	end
 end
 DefineUpdateSystem({"enemycontrol", "tank", "tankturret", "dir"}, USEnemyControl)
+
+USCollisionMap_TileClear = function(ent)
+	local cmc = GetEntComp(ent, "maptile_clear")
+	if IsAliveEntity(cmc.collmap) then
+		local collmap = GetEntComp(cmc.collmap, "collmap")
+		local ix = ((cmc.row - 1) * collmap.columns) + cmc.column
+		collmap.matrix[ix] = 0
+	end
+	KillEntity(ent)
+end
+DefineUpdateSystem({"maptile_clear"}, USCollisionMap_TileClear)
