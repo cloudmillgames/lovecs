@@ -16,6 +16,11 @@ function has_value(t, val)
 	return false
 end
 
+-- true if value is between n and m inclusive
+function is_between(v, n, m)
+	return v >= n and v <= m
+end
+
 -- '+=' not really but more readable
 function incr(value, amount)
 	return value + amount
@@ -364,6 +369,7 @@ btn = {
 }
 
 function _init()
+	print("LovECS: Battlecity ECS")
 end
 
 function _update()
