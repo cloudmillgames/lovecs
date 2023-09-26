@@ -26,7 +26,7 @@ function ecsNextBucketId()
 	return ecsBucketId - 1
 end 
 
--- Returns existing bucket or new one
+-- Returns existing bucket id or new one
 function ecsGetBucket(comps_list)
 	local i, bl, found 
 	local buckid = nil
@@ -41,11 +41,12 @@ function ecsGetBucket(comps_list)
 		ecsBuckets[buckid] = {}
 		ecsBucketsList[buckid] = comps_list
 	end
-	return ecsBuckets[buckid]
+	return buckid
 end 
 
 -- Get all compatible buckets to passed components list
 function ecsGetCompatBuckets(comps_list)
+	-- bucket(subset) in comps_list(set)
 	local buckids = {}
 	for i, c in ipairs(ecsBucketsList) do 
 		if ecsCompIn(c, comps_list) then 
@@ -98,7 +99,7 @@ end
 
 function ecsExecSystem(system)
 	local i, e
-	for i, e in ipairs(system.ent_bucket) do
+	for i, e in ipairs(ecsBuckets[system.ent_buckid]) do
 		system.proc(e)
 	end
 end
@@ -158,16 +159,16 @@ function DefineUpdateSystem(comps_list, system_proc)
 	assert(comps_list)
 	assert(system_proc)
 	table.sort(comps_list)
-	local bucket = ecsGetBucket(comps_list)
-	add(ecsUSystems, {proc = system_proc, ent_bucket = bucket})
+	local buckid = ecsGetBucket(comps_list)
+	add(ecsUSystems, {proc = system_proc, ent_buckid = buckid})
 end 
 
 function DefineDrawSystem(comps_list, system_proc)
 	assert(comps_list)
 	assert(system_proc)
 	table.sort(comps_list)
-	local bucket = ecsGetBucket(comps_list)
-	add(ecsDSystems, {proc = system_proc, ent_bucket = bucket})
+	local buckid = ecsGetBucket(comps_list)
+	add(ecsDSystems, {proc = system_proc, ent_buckid = buckid})
 end
 
 function SpawnEntity(comps_list)
@@ -197,7 +198,8 @@ end
 
 -- returns dict of component data
 function GetEntComp(eid, comp_name)
-	assert(eid and comp_name)
+	assert(eid)
+	assert(comp_name)
 	return ecsEntities[eid].cdata[comp_name]
 end
 
@@ -240,7 +242,7 @@ function KillAllEntities()
 	for i=1,#ecsBuckets do
 		ecsBuckets[i] = {}
 	end
-	for i=1,#ecsEntities do
+	for i in pairs(ecsEntities) do
 		table.insert(ecsDeadEntities, ecsEntities[i])
 	end
 	ecsEntities = {}
@@ -263,4 +265,24 @@ function CreateComp(comp_name)
 		end
 	end
 	assert(false) -- bad comp name
+end
+
+-- expensive, only use for singleton systems
+function CollectEntitiesWith(comps)
+	local ents={}
+	for i in pairs(ecsEntities) do
+		if ecsCompIn(comps, ecsEntities[i].comps) then
+			add(ents, i)
+		end
+	end
+	return ents
+end
+
+-- count how many entities are alive
+function CountLiveEntities()
+	local c=0
+	for i in pairs(ecsEntities) do
+		c=c+1
+	end
+	return c
 end
