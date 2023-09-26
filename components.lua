@@ -151,11 +151,12 @@ CDelayedFunc = {
 }
 DefineComponent("delayedfunc", CDelayedFunc)
 
-CScreenEffect_CloseDoor = {
-    duration = 1,   -- duration of closedoor effect
+CScreenEffect_Door = {
+    duration = 1,   -- duration of door effect
     stay = 1,       -- how long does it stay after effect is over, til delete
     rect_color = nil,
+    opening = false,
     _timer_duration = 0,
     _timer_stay = 0
 }
-DefineComponent("screeneffect_closedoor", CScreenEffect_CloseDoor)
+DefineComponent("screeneffect_door", CScreenEffect_Door)
