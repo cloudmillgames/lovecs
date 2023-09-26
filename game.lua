@@ -223,14 +223,21 @@ end
 Construct_EndStage = function()
 	local stagestate = ECS:GetTaggedEntComp("stagestate", "stagestate")
 	assert(stagestate, "Stage state has to be defined at this point")
+
 	if stagestate.gameover then
 		-- Since gameover, set lives to 0
 		local plrsession = MAIN:GetTaggedEntComp("plrsession", "plrsession")
 		plrsession.lives = 0
 	end
+
 	StopAllSounds()
 	ECS:KillAllEntities()
 	local se = ECS:SpawnEntity({"initscore"})
+
+	-- we no longer need pauser
+	local pauser = MAIN:GetTaggedEnt("pauser")
+	assert(pauser, "Should be defined at this point")
+	MAIN:KillEntity(pauser)
 end
 
 Construct_GameOver = function(ent)

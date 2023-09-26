@@ -16,6 +16,9 @@ USInitGame = function(ent)
 		local tc = ECS:GetEntComp(te, "text")
 		tc.text = "<FPS>"
 	end
+	local def_pauser = function()
+		local se = MAIN:SpawnEntity({"pauser"}, "pauser")
+	end
 	local def_stage = function()
 		local se = ECS:SpawnEntity({"stagestate"}, "stagestate")
 	end
@@ -170,6 +173,7 @@ USInitGame = function(ent)
 	end
 	LoadResources()
 	def_fps()
+	def_pauser()
 	def_stage()
 	def_goal()
 	def_bg()

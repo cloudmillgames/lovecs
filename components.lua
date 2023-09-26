@@ -218,9 +218,11 @@ ECS:DefineComponent("move4", CMove4)
 
 CBmpText = {
     text = "",
-    color = nil
+    color = nil,
+	layer = LAYER_UI
 }
 ECS:DefineComponent("bmptext", CBmpText)
+MAIN:DefineComponent("bmptext", CBmpText)
 
 CMenuCursor = {
     places = {},    -- each pair of {x,y} is a menu item, index starts at 1
@@ -268,11 +270,13 @@ CScreenEffect_Door = {
     duration = 1,   -- duration of door effect
     stay = 1,       -- how long does it stay after effect is over, til delete
     rect_color = nil,
-    opening = false,
+    opening = false,-- true=reveal or  false=coverup
+	layer = LAYER_SCREEN,
     _timer_duration = 0,
     _timer_stay = 0
 }
 ECS:DefineComponent("screeneffect_door", CScreenEffect_Door)
+MAIN:DefineComponent("screeneffect_door", CScreenEffect_Door)
 
 CTankTurret = {
 	trigger = false,		-- if true turret attempts fire, reset after check to false

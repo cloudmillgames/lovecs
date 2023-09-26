@@ -7,10 +7,6 @@ ECSClass = require 'ecs'
 ECS = ECSClass.new()
 MAIN = ECSClass.new()
 
-require 'main-components'
-require 'updatesystems.main'
-require 'drawsystems.main'
-
 ---------------- Love2D-PICO8 adaptor
 function add(t, v)
 	table.insert(t, v)
@@ -46,11 +42,14 @@ CompPos = {
 	y = 0
 }
 ECS:DefineComponent("pos", CompPos)
+MAIN:DefineComponent("pos", CompPos)
+
 -- a name for debugging
 CompName = {
 	name = "unnamed"
 }
 ECS:DefineComponent("dbgname", CompName)
+MAIN:DefineComponent("dbgname", CompName)
 
 ---------------- Utility stuffs
 function CompEqual(comp1, comp2)
@@ -385,7 +384,8 @@ btn = {
 	a = 0,
 	s = 0,
 	-- Debug keys 1-9
-	debug = {0, 0, 0, 0, 0, 0, 0, 0, 0}
+	debug = {0, 0, 0, 0, 0, 0, 0, 0, 0},
+	pause = 0	-- buttons assigned to pause: P, Space
 }
 
 function _init()
@@ -401,14 +401,21 @@ function _update()
 	btn.x = love.keyboard.isDown("x") and btn.x + 1 or 0
 	btn.a = love.keyboard.isDown("a") and btn.a + 1 or 0
 	btn.s = love.keyboard.isDown("s") and btn.s + 1 or 0
+
+	local pause = love.keyboard.isDown("p") or love.keyboard.isDown("space") or love.keyboard.isDown("escape")
+	btn.pause = pause and btn.pause + 1 or 0
+
 	for i=1,9 do
 		btn.debug[i] = love.keyboard.isDown(tostring(i)) and btn.debug[i] + 1 or 0
 	end
 
-	Msging.run()
-	Collision.run()
+	-- Add an extra pause layer to prevent immediate changes (like sound effects on a key) from occuring
+	if GameTimePause == false then
+		Msging.run()
+		Collision.run()
 
-	ECS:UpdateECS()
+		ECS:UpdateECS()
+	end
 
 	MAIN:UpdateECS()
 end
@@ -421,13 +428,21 @@ function _draw()
 	MAIN:DrawECS()
 end
 
+---------------- Main
+require 'main-components'
+require 'updatesystems.main'
+require 'drawsystems.main'
+
+
 ---------------- Game
 require 'game'
 
 
 ------------------------------------------ Love2D stuffs
 LoveSprites = {}
+MainDeltaTime = 0.0			-- Constant deltatime, cant be paused or warped
 DeltaTime = 0.0
+GameTimePause = false		-- Setting this to true zeroes out DeltaTime
 GameTimeMultiplier = 1.0	-- Factor multiplied by time, must be changed back manually to 1.0
 GameTimeWarp = 0.0			-- A single time step added to deltatime once, auto resets to 0.0
 
@@ -486,14 +501,19 @@ end
 
 local t = 0
 function love.update(dt)
-	DeltaTime = dt * GameTimeMultiplier
-	if GameTimeWarp > 0.0 then
-		DeltaTime = DeltaTime + GameTimeWarp
-		GameTimeWarp = 0.0
+	MainDeltaTime = dt
+	if GameTimePause then
+		DeltaTime = 0.0
+	else
+		DeltaTime = dt * GameTimeMultiplier
+		if GameTimeWarp > 0.0 then
+			DeltaTime = DeltaTime + GameTimeWarp
+			GameTimeWarp = 0.0
+		end
 	end
 	_update()
 	--t = t + dt
-    --testshader:send("time", t)
+	--testshader:send("time", t)
 end
 
 function love.draw()

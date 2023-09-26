@@ -10,3 +10,10 @@ CMainPlayerSession = {
 	kills = {}	-- dict of [tank_type] = score
 }
 MAIN:DefineComponent("plrsession", CMainPlayerSession)
+
+-- Listen to pause keys and pause/resume game
+CPauser = {
+	paused = false,
+	pausable = true
+}
+MAIN:DefineComponent("pauser", CPauser)
