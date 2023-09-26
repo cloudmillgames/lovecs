@@ -347,8 +347,8 @@ require 'game'
 ------------------------------------------ Love2D stuffs
 LoveSprites = {}
 DeltaTime = 0.0
-TimeMultiplier = 1.0	-- Factor multiplied by time, must be changed back manually to 1.0
-TimeWarp = 0.0			-- A single time step added to deltatime once, auto resets to 0.0
+GameTimeMultiplier = 1.0	-- Factor multiplied by time, must be changed back manually to 1.0
+GameTimeWarp = 0.0			-- A single time step added to deltatime once, auto resets to 0.0
 
 function test() 
 	print("Testing whether dictionary equality works")
@@ -405,10 +405,10 @@ end
 
 local t = 0
 function love.update(dt)
-	DeltaTime = dt * TimeMultiplier
-	if TimeWarp > 0.0 then
-		DeltaTime = DeltaTime + TimeWarp
-		TimeWarp = 0.0
+	DeltaTime = dt * GameTimeMultiplier
+	if GameTimeWarp > 0.0 then
+		DeltaTime = DeltaTime + GameTimeWarp
+		GameTimeWarp = 0.0
 	end
 	_update()
 	--t = t + dt

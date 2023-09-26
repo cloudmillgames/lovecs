@@ -173,7 +173,7 @@ end
 Time_Skip = function(ent)
 	local c = GetEntComps(ent)
 	if c.timedown.time > 0 then
-		TimeWarp = c.timedown.time
+		GameTimeWarp = c.timedown.time
 	end
 end
 
