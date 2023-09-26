@@ -1,5 +1,6 @@
 -- ** ECS **
 -- ecsEntity: eid = {comps = comps_list, cdata = comps_data}
+-- ecsDeadEntities: {eid1, .. }
 -- ecsComponent: { name = { data }, .. }
 -- ecsSystem: { {proc, ent_bucket}, .. }
 -- ecsBucketsList: { bucket_id = comps_list, .. }
@@ -154,14 +155,16 @@ function DefineComponent(name, comp_data)
 end 
 
 function DefineUpdateSystem(comps_list, system_proc)
-	assert(comps_list and system_proc)
+	assert(comps_list)
+	assert(system_proc)
 	table.sort(comps_list)
 	local bucket = ecsGetBucket(comps_list)
 	add(ecsUSystems, {proc = system_proc, ent_bucket = bucket})
 end 
 
 function DefineDrawSystem(comps_list, system_proc)
-	assert(comps_list and system_proc)
+	assert(comps_list)
+	assert(system_proc)
 	table.sort(comps_list)
 	local bucket = ecsGetBucket(comps_list)
 	add(ecsDSystems, {proc = system_proc, ent_bucket = bucket})
@@ -250,4 +253,14 @@ function IsDeadEntity(eid)
 		end
 	end
 	return false
+end
+
+-- Create a comp as data
+function CreateComp(comp_name)
+	for cn in pairs(ecsComponents) do
+		if cn == comp_name then
+			return ecsCreateComp(ecsComponents[cn])
+		end
+	end
+	assert(false) -- bad comp name
 end
