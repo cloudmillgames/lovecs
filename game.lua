@@ -73,13 +73,26 @@ Construct_StartMenu = function()
 	local mc = GetEntComps(menu)
 	mc.menucursor.places = places
 	-- 1 PLAYER, 2 PLAYER, CONSTRUCTION function calls
-	mc.menucursor.funcs = {nil, nil, nil}
+	mc.menucursor.funcs = {Construct_LevelScreen, Construct_LevelScreen, Construct_LevelScreen}
 	mc.uianimspr.spritesheet = "icons"
 	mc.uianimspr.scalex = SCALE
 	mc.uianimspr.scaley = SCALE
 	mc.uianimspr.frames = {1, 2}
 	mc.uianimspr.curr_frame = 1
 	mc.uianimspr.frametime = 0.1
+end
+
+Construct_LevelScreen = function()
+	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
+	KillAllEntities()
+	local def_text = function()
+		local se = SpawnEntity({"pos", "bmptext"})
+		local c = GetEntComps(se)
+		c.pos.x = (1280 / 2) - (8 * 5 * SCALE)
+		c.pos.y = (720 / 2) - 4
+		c.bmptext.text = "STAGE   1"
+	end
+	def_text()
 end
 
 ----------------- Define Components
@@ -441,6 +454,19 @@ USMenuCursor = function(ent)
 	if btn.down == 1 then
 		comps.menucursor.current = math.min(comps.menucursor.current + 1, #comps.menucursor.places)
 	end
+	if btn.z == 1 then
+		local f = comps.menucursor.funcs[comps.menucursor.current]
+		if f ~= nil then
+			local se = SpawnEntity({"screeneffect_closedoor", "delayedfunc"})
+			local secd = GetEntComp(se, "screeneffect_closedoor")
+			local delf = GetEntComp(se, "delayedfunc")
+			secd.duration = 1
+			secd.rect_color = ARENA_BG_COLOR
+			delf.delay = 1.1
+			delf.func = f
+			KillEntity(ent)
+		end
+	end
 	-- Animated sprite
 	comps.uianimspr._timer = comps.uianimspr._timer + DeltaTime
 	if comps.uianimspr._timer >= comps.uianimspr.frametime then
@@ -474,6 +500,7 @@ USScreenEffect_CloseDoor = function(ent)
 		end
 	end
 end
+DefineUpdateSystem({"screeneffect_closedoor"}, USScreenEffect_CloseDoor)
 
 ----------------- Define draw systems
 DSTextDrawer = function(ent)
@@ -542,11 +569,18 @@ DSScreenEffect_CloseDoor = function(ent)
 	local secd = GetEntComp(ent, "screeneffect_closedoor")
 	local perc = secd._timer_duration / secd.duration
 	local fact = (720 / 2) * perc
-	Draw.rectagnle(LAYER_SCREEN, "fill", 0, 0, 1280, fact)
+	if secd.rect_color ~= nil then
+		Draw.setColor(secd.rect_color)
+	end
+	Draw.rectangle(LAYER_SCREEN, "fill", 0, 0, 1280, fact)
 	local nhei = perc * 720 / 2
 	local rvrs = 720 - nhei
+	if secd.rect_color ~= nil then
+		Draw.setColor(secd.rect_color)
+	end
 	Draw.rectangle(LAYER_SCREEN, "fill", 0, rvrs, 1280, nhei)
 end
+DefineDrawSystem({"screeneffect_closedoor"}, DSScreenEffect_CloseDoor)
 
 ----------------- Create entities
 ents = {
