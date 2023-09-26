@@ -1,6 +1,15 @@
 -- ** General Update Systems **
 local easing = require 'easing'
 
+-- Link entity's lifetime to a parent, it dies if parent dies
+USChild = function(ent)
+	local c = GetEntComp(ent, "child")
+	if c.parent > 0 and IsDeadEntity(c.parent) then
+		KillEntity(ent)
+	end
+end
+DefineUpdateSystem({"child"}, USChild)
+
 -- Dispatches message when monitored entity dies, kills self after
 USKillMsg = function(ent)
 	local c = GetEntComps(ent)

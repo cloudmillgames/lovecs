@@ -34,6 +34,12 @@ SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
 SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE}
 
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
+TANK_COLORS = {
+	{0.8, 0.8, 0.8, 1.0},	-- Level 1
+	{0.0, 0.8, 0.0, 1.0},	-- Level 2
+	{0.0, 0.0, 0.8, 1.0},	-- Level 3
+	{0.8, 0.0, 0.0, 1.0},	-- Level 4
+}
 
 TANK_STEP = 4.0
 SHELL_SPEED = 1.0
@@ -224,10 +230,10 @@ end
 -- Returns spawndirector entity
 Construct_SpawnDirector = function()
 	local se = SpawnEntity({"spawndirector"})
-	local c = GetEntComps(se)
+	local c = GetEntComp(se, "spawndirector")
 
 	c.active = true
-	c.total_spawns = 20
+	c.spawns = 20
 	c.cooldown = 2.0
 
 	local zones = {
@@ -238,8 +244,11 @@ Construct_SpawnDirector = function()
 
 	local sensors = {}
 	for i=1,#zones do
-		local s = SpawnEntity({"collsensor", "pos", "collshape", "collid"})
+		local s = SpawnEntity({"collsensor", "pos", "collshape", "collid", "child"})
 		local cc = GetEntComps(s)
+
+		cc.child.parent = se
+
 		cc.collshape.type = SHAPE_RECT
 		cc.collshape.x = zones[i].x
 		cc.collshape.y = zones[i].y
@@ -252,6 +261,9 @@ Construct_SpawnDirector = function()
 
 		add(sensors, s)
 	end
+
+	c.zones = zones
+	c.sensors = sensors
 
 	return se
 end
@@ -266,9 +278,11 @@ Construct_TankMotionSensors = function(entity, step)
 	local comps = GetEntComps(entity)
 	local sensors = {}
 	for i=1,4 do
-		local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid"})
+		local s = SpawnEntity({"collsensor", "pos", "poslink", "collshape", "collid", "child"})
 		local c = GetEntComps(s)
 		--c.dbgname.name = comps.dbgname.name.."_sensor_"..tostring(s)
+
+		c.child.parent = entity
 
 		c.poslink.parent = entity
 
@@ -320,12 +334,19 @@ Construct_Tank = function(tank_color, tank_layer)
 	return se
 end
 
-Construct_EnemyTank = function()
-	-- TODO create an enemy tank
+Construct_EnemyTank = function(spawn_pos)
+	local tank = Construct_Tank(TANK_COLORS[1], LAYER_TANKS)
+	local comps = GetEntComps(tank)
+	comps.pos.x = spawn_pos.x
+	comps.pos.y = spawn_pos.y
+	comps.dir.dir = DOWN
 end
 
-Spawn_EnemyTank = function()
-	-- TODO spawn enemy tank
+Spawn_EnemyTank = function(spawn_pos)
+	-- TODO this should spawn via spawn effect first
+	local tank = Construct_EnemyTank(spawn_pos)
+	print("SPAWNED ENEMY TANK")
+	return tank
 end
 
 --------------------------------------------------------------------------------------------

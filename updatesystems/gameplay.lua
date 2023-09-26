@@ -307,23 +307,33 @@ USSpawnDirector = function(ent)
 
 		-- Update alive units tally
 		local alive = {}
-		for i=1,#sd._spawns do
-			if IsDeadEntity(sd._spawns[i]) == false then
-				add(alive, sd._spawns[i])
+		for i=1,#sd._spawned do
+			if IsDeadEntity(sd._spawned[i]) == false then
+				add(alive, sd._spawned[i])
 			end
 		end
-		sd._spawns = alive
+		sd._spawned = alive
 
 		-- Spawn timer
 		if sd._timer > 0 then
 			sd._timer = math.max(sd._timer - DeltaTime, 0)
 		else
-			local alive_count = #sd._spawns
-			if sd.total_spawns > 0 then
+			local alive_count = #sd._spawned
+			if sd.spawns > 0 then
 				if alive_count < sd.max_alive then
-					sd.total_spawns = sd.total_spawns - 1
-					sd._timer = sd.cooldown
-					Spawn_EnemyTank()
+					local sensor_ent = sd.sensors[sd._current_zone]
+					local sensor = GetEntComp(sensor_ent, "collid")
+					if #sensor.events == 0 then
+						-- no units in spawn zone -> we spawn
+						sd.spawns = sd.spawns - 1
+						sd._timer = sd.cooldown
+						local zone = sd.zones[sd._current_zone]
+						add(sd._spawned, Spawn_EnemyTank(zone))
+						sd._current_zone = sd._current_zone + 1
+						if sd._current_zone > #sd.zones then
+							sd._current_zone = 1
+						end
+					end
 				end
 			else
 				if alive_count == 0 then

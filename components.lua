@@ -1,4 +1,4 @@
--- ** GAME: COMPONENTS **
+-- ** COMPONENTS **
 
 -- Start game screen
 CInitStart = {}
@@ -118,6 +118,12 @@ CFPSCounter = {
 	frame_count = 0,
 }
 DefineComponent("fpscounter", CFPSCounter)
+
+-- Links this entity's lifetime to a parent, it dies when parent dies
+CChild = {
+	parent = -1
+}
+DefineComponent("child", CChild)
 
 -- Follow position of another entity with offset
 CPosLink = {
@@ -250,7 +256,7 @@ DefineComponent("killmsg", CKillMsg)
 -- Dispatches message when spawns are exhausted then kills self
 CSpawnDirector = {
 	active = true,		-- Spawner operates when active = true
-	total_spawns = 20,	-- How many tanks in total the director has
+	spawns = 20,		-- How many tanks in total the director has
 	max_alive = 4,		-- How many alive units at one time from this spawner
 	zones = {},			-- Each zone is 16x16 rect {x=,y=,w=,h=} guaranteed to be free of tiles
 	sensors = {},		-- Zone sensors to make sure no objects are in the area when spawning
@@ -259,7 +265,7 @@ CSpawnDirector = {
 	msg_channel = Msging.CHANNEL,
 	_timer = 0,
 	_current_zone = 1,	-- Used to alternate between spawn zones
-	_spawns = {}		-- Entities that were spawned
+	_spawned = {}		-- Entities that were spawned
 }
 DefineComponent("spawndirector", CSpawnDirector)
 
