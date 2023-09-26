@@ -341,10 +341,14 @@ ECS:DefineComponent("datalink", CDataLink)
 -- Maintains an array of entities that is a given start size, when "keep" value drops it
 -- deletes entities from the end of the array to reflect. Used for enemy tank count UI sprites
 CEntArrKeep = {
-	ent_arr = {},	-- start entity array
+	ent_array = {},	-- start entity array
 	keep = 20		-- how many entities to keep
 }
 ECS:DefineComponent("entarrkeep", CEntArrKeep)
+
+-- Used to identify enemy tanks UI so it can be fetched
+CEnemyTanksUI = {}
+ECS:DefineComponent("enemytanksui", CEnemyTanksUI)
 
 ----------------------------------------------------- Deprecated Components
 

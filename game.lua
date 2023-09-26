@@ -304,7 +304,7 @@ Time_Skip = function(ent)
 	end
 end
 
--- Returns spawndirector entity
+-- Returns spawndirector entity for enemies
 Construct_SpawnDirector = function()
 	local se = ECS:SpawnEntity({"spawndirector"})
 	local c = ECS:GetEntComp(se, "spawndirector")
@@ -341,6 +341,17 @@ Construct_SpawnDirector = function()
 
 	c.zones = zones
 	c.sensors = sensors
+
+	-- Enemy tanks UI linker
+	local keepent = ECS:GetFirstEntityWith({"enemytanksui"})
+	ECS:EntAddComp(keepent, "datalink")
+	local keeplink = ECS:GetEntComp(keepent, "datalink")
+	keeplink.src_ent = se
+	keeplink.src_comp = "spawndirector"
+	keeplink.src_prop = "spawns"
+	keeplink.dest_type = "number"
+	keeplink.dest_comp = "entarrkeep"
+	keeplink.dest_prop = "keep"
 
 	return se
 end
@@ -517,10 +528,17 @@ end
 Construct_UIEnemyCount = function(plrsession_ent, sc_pos, count)
 	local column = 0
 	local row = 1
+	
+	local keep_ent = ECS:SpawnEntity({"entarrkeep", "enemytanksui"})
+	local keep = ECS:GetEntComp(keep_ent, "entarrkeep")
+	keep.ent_array = {}
+	keep.keep = count
+
 	for i=1,count do
 		local x = sc_pos.x + column * 8 * SCALE
 		local y = sc_pos.y + row * 8 * SCALE
 		local e = ECS:SpawnEntity({"pos", "spr"})
+		add(keep.ent_array, e)
 		local c = ECS:GetEntComps(e)
 		c.pos.x = x
 		c.pos.y = y
