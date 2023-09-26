@@ -256,6 +256,7 @@ CSpawnDirector = {
 	sensors = {},		-- Zone sensors to make sure no objects are in the area when spawning
 	cooldown = 2.0,		-- Minimum time between spawns
 	msg_on_finish = "spawns-finished",
+	msg_channel = Msging.CHANNEL,
 	_timer = 0,
 	_current_zone = 1,	-- Used to alternate between spawn zones
 	_spawns = {}		-- Entities that were spawned

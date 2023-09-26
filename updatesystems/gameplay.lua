@@ -327,7 +327,8 @@ USSpawnDirector = function(ent)
 				end
 			else
 				if alive_count == 0 then
-					-- TODO dispatch msg_on_finish and kill self
+					Msging.dispatchEntity(sd.msg_channel, sd.msg_on_finish)
+					KillEntity(ent)
 				end
 			end
 		end

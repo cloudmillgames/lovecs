@@ -248,6 +248,7 @@ Construct_SpawnDirector = function()
 
 		cc.collid.ent = s
 		cc.collid.layer = LAYER_MAP
+		cc.collid.sensor = true
 
 		add(sensors, s)
 	end
