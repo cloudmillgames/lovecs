@@ -295,6 +295,8 @@ Construct_TankMotionSensors = function(entity, step)
 		c.collid.ent = s
 		c.collid.layer = comps.collid.layer
 		c.collid.sensor = true
+		c.collid.owner = entity
+		c.collid.sense_own_layer = true
 
 		add(sensors, s)
 	end

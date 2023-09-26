@@ -80,13 +80,18 @@ Collision.Shape = {
 DefineComponent("collshape", Collision.Shape)
 
 Collision.ID = {
-    ent = 0,        -- reference to owner entity
+    ent = 0,        -- reference to self entity
     dynamic = true, -- static vs dynamic shapes, static doesn't get events
+    layer = 0,      -- collision only calculated between different layers
+    events = {},    -- events queue for current frame
+
     sensor = false, -- sensing collidor, means other non-sensor collider doesn't get event
                     -- an object both static and sensor is invalid
                     -- sensor doesn't sense sensors, only non-sensor colliders
-    layer = 0,      -- collision only calculated between different layers
-    events = {},    -- events queue for current frame
+    owner = -1,     -- entity that owns this collid, used so sensor ignores owning entity
+                    -- no need to set this if collid is not a sensor
+    sense_own_layer = false,-- when true sensor senses its own layer colliders as well
+
     custom = nil    -- custom data that can be set to anything
 }
 DefineComponent("collid", Collision.ID)
@@ -173,30 +178,47 @@ Collision.run = function()
             e2 = ents[j]
             e1c = GetEntComps(e1)
             e2c = GetEntComps(e2)
-            if e1c.collid.layer ~= e2c.collid.layer then
+
+            if e1c.collid.sensor == true or e2c.collid.sensor == true then
+                -- sensors don't care about dynamic static state
+                -- two sensor colliders won't produce any events
+                if e1c.collid.sensor ~= e2c.collid.sensor then
+                    local sensor
+                    local other
+                    if e1c.collid.sensor then
+                        sensor = e1c.collid
+                        other = e2
+                    else
+                        sensor = e2c.collid
+                        other = e1
+                    end
+                    -- sensor ignores its own entity
+                    if sensor.owner ~= other then
+                        -- Sensors sense against other layers
+                        -- But can sense own layer in which case they sense against all layers
+                        if e1c.collid.layer ~= e2c.collid.layer or sensor.sense_own_layer then
+                            col = Collision.collideShape[e1c.collshape.type][e2c.collshape.type](e1c.pos, e2c.pos, e1c.collshape, e2c.collshape)
+                            if col then
+                                local ev = {e1, e2}
+                                if e1c.collid.sensor == true then
+                                    add(e1c.collid.events, ev)
+                                end
+                                if e2c.collid.sensor == true then
+                                    add(e2c.collid.events, ev)
+                                end
+                            end
+                        end
+                    end
+                end
+            elseif e1c.collid.layer ~= e2c.collid.layer then
                 col = Collision.collideShape[e1c.collshape.type][e2c.collshape.type](e1c.pos, e2c.pos, e1c.collshape, e2c.collshape)
                 if col then
                     local ev = {e1, e2}
-                    local sensor_mode = false
-                    if e1c.collid.sensor == true or e2c.collid.sensor == true then
-                        -- sensors don't care about dynamic static state
-                        -- two sensor colliders won't produce any events
-                        if e1c.collid.sensor ~= e2c.collid.sensor then
-                            if e1c.collid.sensor == true then
-                                add(e1c.collid.events, ev)
-                            end
-                            if e2c.collid.sensor == true then
-                                add(e2c.collid.events, ev)
-                            end
-                        end
-                    else
-                        -- non-sensor respects dynamic/static
-                        if e1c.collid.dynamic == true then
-                            add(e1c.collid.events, ev)
-                        end
-                        if e2c.collid.dynamic == true then
-                            add(e2c.collid.events, ev)
-                        end
+                    if e1c.collid.dynamic == true then
+                        add(e1c.collid.events, ev)
+                    end
+                    if e2c.collid.dynamic == true then
+                        add(e2c.collid.events, ev)
                     end
                 end
             end
