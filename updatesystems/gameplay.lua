@@ -358,14 +358,20 @@ USShellCollision = function(ent)
 				-- enemy SHELL vs PLAYER TANK
 				Small_Explosion(c.pos)
 				if ECS:HasEntComp(other, "player") then
-					-- player tank impact
-					PlaySound("big_explosion")
-					local othercomps = ECS:GetEntComps(other)
-					Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
-					ECS:KillEntity(ent)
-					ECS:KillEntity(other)
-					-- Lose a live or gameover
-					local playerdeath = ECS:SpawnEntity({"playerdeath"})
+					if ECS:HasEntComp(other, "tankshield") then
+						-- Shielded
+						PlaySound("solid_impact")
+						ECS:KillEntity(ent)
+					else
+						-- player tank impact
+						local othercomps = ECS:GetEntComps(other)
+						PlaySound("big_explosion")
+						Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
+						ECS:KillEntity(ent)
+						ECS:KillEntity(other)
+						-- Lose a live or gameover
+						local playerdeath = ECS:SpawnEntity({"playerdeath"})
+					end
 				else
 					error("There shouldn't be another entity in player layer that is not player at the moment")
 				end
@@ -660,3 +666,14 @@ USDebugKeys = function(ent)
 	end
 end
 ECS:DefineUpdateSystem({"debugkeys"}, USDebugKeys)
+
+USTankShield = function(ent)
+	local c = ECS:GetEntComps(ent)
+	if c.tankshield.duration > 0 then
+		c.tankshield.duration = c.tankshield.duration - DeltaTime
+	else
+		ECS:KillEntity(c.tankshield.shield_effect)
+		ECS:EntRemComp(ent, "tankshield")
+	end
+end
+ECS:DefineUpdateSystem({"tankshield", "tank", "pos"}, USTankShield)

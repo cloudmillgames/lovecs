@@ -116,11 +116,10 @@ CAnimSpr_PingPong = {
 }
 ECS:DefineComponent("animspr_pingpong", CAnimSpr_PingPong)
 
--- an animator for the animated sprite that cycles all frames
--- Deprecated: this counts in frames not DeltaTime
+-- an animator for the animated sprite that cycles all frames forever
 CAnimSpr_Cycle = {
-	frametime=1,
-	_framecount=0	-- used to count frame time
+	frametime=0.25,
+	_timer = 0.0	-- used to count frame time
 }
 ECS:DefineComponent("animspr_cycle", CAnimSpr_Cycle)
 
@@ -407,6 +406,13 @@ CScoreCounter = {
 	pausetimer = 1	-- initial timer pause for a bit before counting
 }
 ECS:DefineComponent("scorecounter", CScoreCounter)
+
+-- Applies a shield against enemy tanks for duration
+CTankShield = {
+	duration = 300,
+	shield_effect = -1	-- ent for anim shield sprite
+}
+ECS:DefineComponent("tankshield", CTankShield)
 
 ----------------------------------------------------- Deprecated Components
 

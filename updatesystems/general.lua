@@ -116,18 +116,14 @@ ECS:DefineUpdateSystem({"animspr", "animspr_pingpong"}, USAnimSpr_PingPong)
 
 -- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)
-	local comps = ECS:GetEntComps(ent)
-	comps.animspr_cycle._framecount = comps.animspr_cycle._framecount + 1
-	if comps.animspr_cycle._framecount == comps.animspr_cycle.frametime then
-		comps.animspr_cycle._framecount = 0
-		local ss = Res.GetSpritesheet(comps.animspr.spritesheet)
-		comps.animspr.curr_frame = comps.animspr.curr_frame + 1
-		if comps.animspr.frame_end < 1 then
-			if comps.animspr.curr_frame > ss.framecount then
-				comps.animspr.curr_frame = comps.animspr.frame_start
-			end
-		elseif comps.animspr.curr_frame > comps.animspr.frame_end then
-			comps.animspr.curr_frame = comps.animspr.frame_start
+	local c = ECS:GetEntComps(ent)
+	c.animspr_cycle._timer = c.animspr_cycle._timer + DeltaTime
+	if c.animspr_cycle._timer >= c.animspr_cycle.frametime then
+		c.animspr_cycle._timer = c.animspr_cycle._timer - c.animspr_cycle.frametime
+		if c.animspr.curr_frame >= Res.GetSpriteFramecount(c.animspr.spritesheet) then
+			c.animspr.curr_frame = 1
+		else
+			c.animspr.curr_frame = c.animspr.curr_frame + 1
 		end
 	end
 end

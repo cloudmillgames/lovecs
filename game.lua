@@ -501,6 +501,27 @@ Construct_TankMotionSensors = function(entity, step)
 	comps.motionsensor4.sensors = sensors
 end
 
+Give_Shield = function(tank)
+	assert(ECS:IsAliveEntity(tank) and ECS:HasEntComp(tank, "tank"))
+
+	local shield_ent = ECS:SpawnEntity({"pos", "animspr", "poslink", "child", "animspr_cycle"})
+	local sc = ECS:GetEntComps(shield_ent)
+	sc.poslink.parent = tank
+
+	sc.child.parent = tank
+
+	sc.animspr.spritesheet = "shield_effect"
+	sc.animspr.scalex = SCALE
+	sc.animspr.scaley = SCALE
+	sc.animspr.layer = LAYER_PLAYER
+
+	sc.animspr_cycle.frametime = 0.05
+	
+	ECS:EntAddComps(tank, {"tankshield"})
+	local tc = ECS:GetEntComps(tank)
+	tc.tankshield.shield_effect = shield_ent
+end
+
 Construct_Tank = function(data)
 	local zone = data[1]
 	local tank_color = data[2]
@@ -535,6 +556,7 @@ Construct_Tank = function(data)
 
 	if tank_layer == LAYER_PLAYER then
 		ECS:EntAddComps(se, {"player", "msg_receiver"})
+		Give_Shield(se, 3)
 	else
 		ECS:EntAddComps(se, {"enemy", "enemycontrol"})
 	end
