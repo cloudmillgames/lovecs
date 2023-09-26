@@ -4,6 +4,15 @@
 USInitStart = function(ent)
 	love.graphics.setBackgroundColor(START_BG_COLOR)
 	KillAllEntities()
+	
+	local def_fps = function()
+		local te = SpawnEntity({"pos", "text", "fpscounter"})
+		local pc = GetEntComp(te, "pos")
+		pc.x = 1230
+		pc.y = 2
+		local tc = GetEntComp(te, "text")
+		tc.text = "<FPS>"
+	end
 	local def_skipper = function()
 		local se = SpawnEntity({"timedown", "buttonfunc"})
 		local c = GetEntComps(se)
@@ -34,6 +43,7 @@ USInitStart = function(ent)
 	LoadResources()
 	def_skipper()
 	def_title()
+	def_fps()
 end
 DefineUpdateSystem({"initstart"}, USInitStart)
 
