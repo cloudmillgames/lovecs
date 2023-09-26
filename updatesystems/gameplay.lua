@@ -191,8 +191,9 @@ DefineUpdateSystem({"tankturret"}, USTurretUpdate)
 USTankShell = function(ent)
 	local c = GetEntComps(ent)
 	local mov = GetMovementFromDir(c.dir.dir)
-	c.pos.x = c.pos.x + (mov.x * c.projectile.speed)
-	c.pos.y = c.pos.y + (mov.y * c.projectile.speed)
+	-- Assumes speed to be SCALEd already
+	c.pos.x = c.pos.x + (mov.x * c.projectile.speed * DeltaTime)
+	c.pos.y = c.pos.y + (mov.y * c.projectile.speed * DeltaTime)
 end
 DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
 

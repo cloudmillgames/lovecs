@@ -223,7 +223,7 @@ CTankTurret = {
 DefineComponent("tankturret", CTankTurret)
 
 CProjectile = {
-	speed=30,
+	speed=250,
 	shooter_entity=0
 }
 DefineComponent("projectile", CProjectile)
