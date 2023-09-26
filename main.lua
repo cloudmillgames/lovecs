@@ -298,6 +298,9 @@ Music.isPlaying = function()
 	return false
 end
 
+---------------- Msging system
+require 'msging'
+
 ---------------- Collision System
 require 'collision'
 
