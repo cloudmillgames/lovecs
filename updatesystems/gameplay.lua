@@ -16,6 +16,9 @@ USInitGame = function(ent)
 		local tc = ECS:GetEntComp(te, "text")
 		tc.text = "<FPS>"
 	end
+	local def_stage = function()
+		local se = ECS:SpawnEntity({"stagestate"}, "stagestate")
+	end
 	local def_goal = function()
 		local se = ECS:SpawnEntity({"pos", "animspr", "collid", "collshape", "criticaltarget"})
 		local c = ECS:GetEntComps(se)
@@ -153,6 +156,7 @@ USInitGame = function(ent)
 	end
 	LoadResources()
 	def_fps()
+	def_stage()
 	def_goal()
 	def_bg()
 	Construct_PlayerSpawner()
@@ -545,7 +549,7 @@ ECS:DefineUpdateSystem({"criticaldeath"}, USCriticalDeath)
 USGameOver = function(ent)
 	local popup = ECS:SpawnEntity({"spr", "pos", "move4", "delayedfunc"})
 	local pc = ECS:GetEntComps(popup)
-	
+
 	pc.spr.spritesheet = "small_gameover"
 	pc.spr.scalex = SCALE
 	pc.spr.scaley = SCALE

@@ -15,7 +15,7 @@ DOWN = 3
 LEFT = 4
 
 START_STAGE = 1
-START_LIVES = 3
+START_LIVES = 0
 
 SC_WIDTH = 1280.0
 SC_HEIGHT = 720.0
@@ -515,6 +515,10 @@ Spawn_PlayerTank = function(zone)
 end
 
 Trigger_GameOver = function()
+	local ss = ECS:GetTaggedEnt("stagestate")
+	local state = ECS:GetEntComp(ss, "stagestate")
+
+	if state.gameover == false then
 		-- Remove player components to disable control
 		local plrs = ECS:CollectEntitiesWith({"player"})
 		for i=1,#plrs do
@@ -522,7 +526,11 @@ Trigger_GameOver = function()
 		end
 		StopSound("tank_idle")
 		StopSound("tank_moving")
+
+		state.gameover = true
+
 		local gameover = ECS:SpawnEntity({"gameover"})
+	end
 end
 
 Construct_UIEnemyCount = function(plrsession_ent, sc_pos, count)

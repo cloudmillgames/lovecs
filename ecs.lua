@@ -383,7 +383,7 @@ end
 function ECS:GetTaggedEnt(tag)
 	if self:_RefreshTaggedEnts(tag) then
 		local ents = self._TaggedEnts[tag]
-		for _, e in ents do
+		for _, e in pairs(ents) do
 			return e
 		end
 	end

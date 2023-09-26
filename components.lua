@@ -8,6 +8,12 @@ ECS:DefineComponent("initstart", CInitStart)
 CInitGame = {}
 ECS:DefineComponent("initgame", CInitGame)
 
+-- State per stage
+CStageState = {
+	gameover = false
+}
+ECS:DefineComponent("stagestate", CStageState)
+
 -- a direction of 4: 1 (up), 2 (right), 3(down), 4 (left)
 CDir = {
 	dir = 1
