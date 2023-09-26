@@ -217,7 +217,8 @@ function ECS:DefineDrawSystem(comps_list, system_proc)
 	add(self._DSystems, {proc = system_proc, ent_buckid = buckid})
 end
 
-function ECS:SpawnEntity(comps_list)
+-- name_entity: optional name to register this entity under
+function ECS:SpawnEntity(comps_list, name_entity)
 	local eid = self:_NextEntityId()
 	local comps_data = {} 
 	table.sort(comps_list)
@@ -231,7 +232,12 @@ function ECS:SpawnEntity(comps_list)
 	local cbucks = self:_GetCompatBuckets(comps_list)
 	for i = 1, #cbucks do
 		add(self._Buckets[cbucks[i]], eid)
-	end 
+	end
+
+	if type(name_entity) == "string" and #name_entity > 0 then
+		ECS:SetEntName(name_entity, eid)
+	end
+
 	return eid
 end
 
