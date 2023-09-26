@@ -14,7 +14,8 @@ RIGHT = 2
 DOWN = 3
 LEFT = 4
 
-STAGE = 1
+START_STAGE = 1
+START_LIVES = 3
 
 SC_WIDTH = 1280.0
 SC_HEIGHT = 720.0
@@ -154,7 +155,7 @@ Construct_LevelScreen = function(ent)
 		local c = ECS:GetEntComps(se)
 		c.pos.x = (1280 / 2) - (8 * 5 * SCALE)
 		c.pos.y = (720 / 2) - 4
-		c.bmptext.text = "STAGE   "..tostring(STAGE)
+		c.bmptext.text = "STAGE   "..tostring(START_STAGE)
 		c.bmptext.color = {0, 0, 0, 1}
 		c.delayedfunc.delay = 2
 		c.delayedfunc.func = Construct_Gameplay
@@ -513,7 +514,7 @@ Trigger_GameOver = function()
 		local gameover = ECS:SpawnEntity({"gameover"})
 end
 
-Construct_UIEnemyCount = function(sc_pos, count)
+Construct_UIEnemyCount = function(plrsession_ent, sc_pos, count)
 	local column = 0
 	local row = 1
 	for i=1,count do
@@ -537,7 +538,7 @@ Construct_UIEnemyCount = function(sc_pos, count)
 	end
 end
 
-Construct_UILivesCount = function(sc_pos, count)
+Construct_UILivesCount = function(plrsession_ent, sc_pos, count)
 	local iptext = ECS:SpawnEntity({"pos", "bmptext"})
 	local ipcomps = ECS:GetEntComps(iptext)
 	ipcomps.pos.x = sc_pos.x
@@ -564,8 +565,6 @@ Construct_UILivesCount = function(sc_pos, count)
 	licomps.bmptext.text = tostring(count)
 	licomps.bmptext.color = BLACK
 
-	local plrsession_ent = MAIN:GetFirstEntityWith({"plrsession"})
-	assert(MAIN:IsAliveEntity(plrsession_ent))
 	licomps.datalink.src_ecs = "MAIN"
 	licomps.datalink.src_ent = plrsession_ent
 	licomps.datalink.src_comp = "plrsession"
@@ -575,7 +574,7 @@ Construct_UILivesCount = function(sc_pos, count)
 	licomps.datalink.dest_prop = "text"
 end
 
-Construct_UIStageNumber = function(sc_pos, num)
+Construct_UIStageNumber = function(plrsession_ent, sc_pos, num)
 	local flag = ECS:SpawnEntity({"pos", "spr"})
 	local fcomps = ECS:GetEntComps(flag)
 	fcomps.pos.x = sc_pos.x
@@ -586,12 +585,22 @@ Construct_UIStageNumber = function(sc_pos, num)
 	fcomps.spr.scaley = SCALE
 	fcomps.spr.layer = LAYER_UI
 
-	local stage = ECS:SpawnEntity({"pos", "bmptext"})
+	local stage = ECS:SpawnEntity({"pos", "bmptext", "datalink"})
 	local sc = ECS:GetEntComps(stage)
+
 	sc.pos.x = sc_pos.x + 8 * SCALE
 	sc.pos.y = sc_pos.y + 8 * SCALE
+
 	sc.bmptext.text = tostring(num)
 	sc.bmptext.color = BLACK
+
+	sc.datalink.src_ecs = "MAIN"
+	sc.datalink.src_ent = plrsession_ent
+	sc.datalink.src_comp = "plrsession"
+	sc.datalink.src_prop = "stage"
+	sc.datalink.dest_type = "string"
+	sc.datalink.dest_comp = "bmptext"
+	sc.datalink.dest_prop = "text"
 end
 
 --------------------------------------------------------------------------------------------

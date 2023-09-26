@@ -6,7 +6,11 @@ USInitStart = function(ent)
 	ECS:KillAllEntities()
 	MAIN:KillAllEntities()
 
-	MAIN:SpawnEntity({"plrsession"})
+	local session = MAIN:SpawnEntity({"plrsession"})
+	local session_data = MAIN:GetEntComp(session, "plrsession")
+
+	session_data.stage = START_STAGE
+	session_data.lives = START_LIVES
 	
 	local def_fps = function()
 		local te = ECS:SpawnEntity({"pos", "text", "fpscounter"})
