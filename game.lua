@@ -206,6 +206,7 @@ Next_Stage = function(ent)
 		-- TODO maybe end the game instead? credits or something
 		plrsession.stage = 1
 	end
+	plrsession.kills = {}
 	Construct_LevelScreen()
 end
 
