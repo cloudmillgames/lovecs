@@ -81,7 +81,7 @@ USScoreGained = function(ent)
     local plrsession_ent = MAIN:GetTaggedEnt("plrsession")
     assert(MAIN:IsAliveEntity(plrsession_ent), "At this point plrsession must be defined, but appears not to be?")
     local plrsession = MAIN:GetEntComp(plrsession_ent, "plrsession")
-    print("SCOREGAIN SCORE = "..tostring(c.scoregain.score))
+    
     -- Add score and optionally tank_type to player session
     plrsession.score = plrsession.score + c.scoregain.score
     if c.scoregain.tank_type > 0 then
