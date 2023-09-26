@@ -81,6 +81,11 @@ function makeRect(_x, _y, _w, _h)
 		h = _h}
 end
 
+-- Makes a simple table with {func=myfunction, data={...}} called `funcbind`
+function makeFunc(_func, _data)
+	return {func=_func, data=_data}
+end
+
 -- Utility to call funcbind = {func=myfunction, data={arg1,arg2,..})
 function callFunc(funcbind)
 	assert(type(funcbind.func) == "function")

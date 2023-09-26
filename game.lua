@@ -337,17 +337,45 @@ end
 
 Construct_EnemyTank = function(spawn_pos)
 	local tank = Construct_Tank(TANK_COLORS[1], LAYER_TANKS)
+
+	EntAddComp(tank, "enemy")
+
 	local comps = GetEntComps(tank)
+
 	comps.pos.x = spawn_pos.x
 	comps.pos.y = spawn_pos.y
+
 	comps.dir.dir = DOWN
 end
 
-Spawn_EnemyTank = function(spawn_pos)
-	-- TODO this should spawn via spawn effect first
-	local tank = Construct_EnemyTank(spawn_pos)
-	print("SPAWNED ENEMY TANK")
-	return tank
+Spawn_EnemyTank = function(zone)
+	local seffect = SpawnEntity({"animspr", "animspr_pingpong", "pos", "killfunc", "collshape", "collid"})
+	local c = GetEntComps(seffect)
+
+	c.animspr.spritesheet = "spawn_effect"
+	c.animspr.scalex = SCALE
+	c.animspr.scaley = SCALE
+
+	c.animspr_pingpong.cycles = 2
+
+	c.pos.x = zone.x
+	c.pos.y = zone.y
+
+	c.collshape.type = SHAPE_RECT
+	c.collshape.x = 0
+	c.collshape.y = 0
+	c.collshape.w = zone.w
+	c.collshape.h = zone.h
+
+	c.collid.ent = seffect
+	c.collid.dynamic = false
+	c.collid.layer = LAYER_BG
+
+	local kfunc = SpawnEntity({"killfunc"})
+	local cc = GetEntComps(kfunc)
+
+	cc.killfunc.entity = seffect
+	cc.killfunc.funcbind = makeFunc(Construct_EnemyTank, zone)
 end
 
 --------------------------------------------------------------------------------------------

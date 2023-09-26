@@ -314,19 +314,19 @@ USSpawnDirector = function(ent)
 		local sd = c.spawndirector
 
 		-- Update alive units tally
-		local alive = {}
-		for i=1,#sd._spawned do
-			if IsDeadEntity(sd._spawned[i]) == false then
-				add(alive, sd._spawned[i])
+		local alive_count = 0
+		local enemy_tanks = CollectEntitiesWith({"tank", "enemy"})
+		for i=1,#enemy_tanks do
+			if IsDeadEntity(enemy_tanks[i]) == false then
+				alive_count = alive_count + 1
 			end
 		end
-		sd._spawned = alive
+		print("ALIVE TANKS = "..tostring(alive_count))
 
 		-- Spawn timer
 		if sd._timer > 0 then
 			sd._timer = math.max(sd._timer - DeltaTime, 0)
 		else
-			local alive_count = #sd._spawned
 			if sd.spawns > 0 then
 				if alive_count < sd.max_alive then
 					local sensor_ent = sd.sensors[sd._current_zone]
@@ -336,7 +336,7 @@ USSpawnDirector = function(ent)
 						sd.spawns = sd.spawns - 1
 						sd._timer = sd.cooldown
 						local zone = sd.zones[sd._current_zone]
-						add(sd._spawned, Spawn_EnemyTank(zone))
+						Spawn_EnemyTank(zone)
 					end
 					-- Regardless of overlap state, move to next zone.
 					-- * if we spawned, its next zone time

@@ -276,7 +276,6 @@ CSpawnDirector = {
 	msg_channel = Msging.CHANNEL,
 	_timer = 0,
 	_current_zone = 1,	-- Used to alternate between spawn zones
-	_spawned = {}		-- Entities that were spawned
 }
 DefineComponent("spawndirector", CSpawnDirector)
 
