@@ -19,6 +19,7 @@ SC_TILE_WIDTH = MAP_TILE_WIDTH * SCALE
 SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
 SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE}
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
+TANK_STEP = 4.0
 
 LAYER_BG = 1
 LAYER_MAP = 2
@@ -113,6 +114,9 @@ CTank = {
 	chain_period = 0.06,-- time between chain ticks
 	throttle = false,	-- true means tank should move
 	speed = 30,
+	moving = 0,			-- used to lock movement for TANK_STEP distance
+	move_delta_x = 0,	-- used to fix tank movement to TANK_STEPs
+	move_delta_y = 0,
 }
 DefineComponent("tank", CTank)
 
@@ -208,16 +212,23 @@ DefineUpdateSystem({"init"}, USInit)
 
 USPlayerUpdate = function(ent)
 	local comps = GetEntComps(ent)
-	if btn.up then comps.dir.dir = UP end
-	if btn.down then comps.dir.dir = DOWN end
-	if btn.left then comps.dir.dir = LEFT end
-	if btn.right then comps.dir.dir = RIGHT end
+	if comps.tank.moving == 0 then
+		if btn.up then comps.dir.dir = UP end
+		if btn.down then comps.dir.dir = DOWN end
+		if btn.left then comps.dir.dir = LEFT end
+		if btn.right then comps.dir.dir = RIGHT end
+	end
 end
-DefineUpdateSystem({"player", "dir"}, USPlayerUpdate)
+DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 
 USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
-	comps.tank.throttle = (btn.up and comps.dir.dir == UP) or (btn.right and comps.dir.dir == RIGHT) or (btn.down and comps.dir.dir == DOWN) or (btn.left and comps.dir.dir == LEFT)
+	if comps.tank.moving == 0 then
+		comps.tank.throttle = (btn.up and comps.dir.dir == UP) or (btn.right and comps.dir.dir == RIGHT) or (btn.down and comps.dir.dir == DOWN) or (btn.left and comps.dir.dir == LEFT)
+		if comps.tank.throttle then
+			comps.tank.moving = TANK_STEP
+		end
+	end
 end
 DefineUpdateSystem({"player", "dir", "tank"}, USTankThrottle)
 
@@ -227,7 +238,14 @@ USTankUpdate = function(ent)
 	local tt = comps.tank.type
 	local td = comps.dir.dir
 	comps.animspr.curr_frame = (tt * 8) + 1 + (td - 1) * 2 + comps.tank.chain_tick
-	if comps.tank.throttle then
+	if comps.tank.moving > 0 then
+		local movedelta = comps.tank.speed * DeltaTime
+		if movedelta > comps.tank.moving then
+			movedelta = comps.tank.moving
+			comps.tank.moving = 0
+		else
+			comps.tank.moving = comps.tank.moving - movedelta
+		end
 		-- Update chain tick
 		comps.tank.chain_timer = comps.tank.chain_timer + DeltaTime
 		if comps.tank.chain_timer >= comps.tank.chain_period then
@@ -236,13 +254,18 @@ USTankUpdate = function(ent)
 		end
 		-- Move
 		if comps.dir.dir == UP then
-			comps.pos.y = comps.pos.y - comps.tank.speed * SCALE * DeltaTime
+			comps.pos.y = comps.pos.y - movedelta * SCALE
 		elseif comps.dir.dir == RIGHT then
-			comps.pos.x = comps.pos.x + comps.tank.speed * SCALE * DeltaTime
+			comps.pos.x = comps.pos.x + movedelta * SCALE
 		elseif comps.dir.dir == LEFT then
-			comps.pos.x = comps.pos.x - comps.tank.speed * SCALE * DeltaTime
+			comps.pos.x = comps.pos.x - movedelta * SCALE
 		elseif comps.dir.dir == DOWN then
-			comps.pos.y = comps.pos.y + comps.tank.speed * SCALE * DeltaTime
+			comps.pos.y = comps.pos.y + movedelta * SCALE
+		end
+		-- Round tank position to eliminate fractional error
+		if comps.tank.moving == 0 then
+			comps.pos.x = fround(comps.pos.x)
+			comps.pos.y = fround(comps.pos.y)
 		end
 	end
 end

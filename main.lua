@@ -25,6 +25,10 @@ function CompEqualSorted(comp1, comp2)
 	return CompEqual(comp1,comp2)
 end
 
+function fround(x)
+  return x >= 0 and math.floor(x + 0.5) or math.ceil(x - 0.5)
+end
+
 ----------------- Resource system
 Res = {}
 Res.Images = {}
@@ -226,6 +230,9 @@ end
 -- testshader = nil
 
 function love.load()
+	if type(jit) == 'table' then
+	   print(jit.version)  --LuaJIT 2.0.2
+	end
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	_init()
 	--test()
