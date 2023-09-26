@@ -86,11 +86,7 @@ end
 
 function ECS:_CreateComp(comp)
 	if comp == nil then error("_CreateComp() nil component, probably wrong name") end
-	local newcomp = {}
-	for i, v in pairs(comp) do
-		newcomp[i] = v
-	end
-	return newcomp
+	return self:_DeepCloneTable(comp)
 end
 
 -- Return true if subset is in set
@@ -121,10 +117,16 @@ function ECS:_ExecSystems(systems)
 	end
 end
 
--- This is a surface clone table only
-function ECS:_CloneTable(t)
+-- Dives into table and clones internal tables recursively
+function ECS:_DeepCloneTable(t)
 	local tt = {}
-	for i, v in pairs(t) do tt[i] = v end
+	for i, v in pairs(t) do
+		if type(v) == "table" then
+			tt[i] = self:_DeepCloneTable(v)
+		else
+			tt[i] = v
+		end
+	end
 	return tt
 end
 
@@ -270,7 +272,7 @@ end
 function ECS:EntAddComp(eid, comp_name)
 	assert(not self._Entities[eid].cdata[comp_name], "Ent has comp: "..tostring(comp_name))
 	assert(self._Components[comp_name], "Comp not defined: "..tostring(comp_name))
-	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
+	local oldcomps = self:_DeepCloneTable(self._Entities[eid].comps)
 	table.insert(self._Entities[eid].comps, comp_name)
 	table.sort(self._Entities[eid].comps)
 	self._Entities[eid].cdata[comp_name] = self:_CreateComp(self._Components[comp_name])
@@ -281,7 +283,7 @@ end
 function ECS:EntAddComps(eid, comp_names)
 	assert(type(comp_names) == "table", "comp_names not a table: "..type(comp_names))
 
-	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
+	local oldcomps = self:_DeepCloneTable(self._Entities[eid].comps)
 	for _, new_comp in pairs(comp_names) do
 		assert(self._Entities[eid].cdata[new_comp] == nil, "Ent has comp: "..tostring(new_comp))
 		assert(self._Components[new_comp], "Comp not defined: "..tostring(new_comp))
@@ -299,7 +301,7 @@ end
 -- Removes component from entity
 function ECS:EntRemComp(eid, comp_name)
 	assert(self._Entities[eid].cdata[comp_name], "Ent doesn't have comp: "..tostring(comp_name))
-	local oldcomps = self:_CloneTable(self._Entities[eid].comps)
+	local oldcomps = self:_DeepCloneTable(self._Entities[eid].comps)
 	local newcomps = {}
 	for i=1,#oldcomps do
 		if oldcomps[i] ~= comp_name then
