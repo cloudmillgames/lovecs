@@ -111,6 +111,14 @@ CAnimSpr_Cycle = {
 }
 ECS:DefineComponent("animspr_cycle", CAnimSpr_Cycle)
 
+-- Draw a rectangle to screen
+CGfxRect = {
+	rect = makeRect(0, 0, 16, 16),
+	color = nil,
+	layer = LAYER_BG
+}
+ECS:DefineComponent("gfxrect", CGfxRect)
+
 -- Battlecity arena
 CArenaBG = {}
 ECS:DefineComponent("arena_bg", CArenaBG)

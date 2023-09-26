@@ -11,24 +11,51 @@ USInitScore = function(ent)
         c.pos.y = y
         c.bmptext.text = text
         c.bmptext.color = color
+        return e
     end
+
+    local plrsession_ent = MAIN:GetTaggedEnt("plrsession")
+    local plrsession = MAIN:GetEntComp(plrsession_ent, "plrsession")
 
     -- HI-SCORE text
     spawn_bmptext( MAP_TO_COORD_X(10),  MAP_TO_COORD_X(2), "HI-SCORE", RED)
+    -- STAGE text
+    local stage = spawn_bmptext(MAP_TO_COORD_X(12), MAP_TO_COORD_X(3), "STAGE "..tostring(plrsession.stage), WHITE)
     -- TODO HI-SCORE value
-    spawn_bmptext( MAP_TO_COORD_X(16),  MAP_TO_COORD_X(2), "20000", ORANGE)
+    local hiscore = spawn_bmptext( MAP_TO_COORD_X(16),  MAP_TO_COORD_X(2), "20000", ORANGE)
     -- I-PLAYER
-    spawn_bmptext(MAP_TO_COORD_X(7), MAP_TO_COORD_Y(4), "I-PLAYER", RED)
-    -- TODO Player 1 score
-    spawn_bmptext(MAP_TO_COORD_X(9), MAP_TO_COORD_Y(5), "2900", ORANGE)
+    spawn_bmptext(MAP_TO_COORD_X(8), MAP_TO_COORD_Y(4), "I-PLAYER", RED)
+    -- Player 1 score
+    local score = spawn_bmptext(MAP_TO_COORD_X(8), MAP_TO_COORD_Y(5), spaceText(tostring(plrsession.score), 8), ORANGE)
 
     for i=1,4 do
+        local yy = MAP_TO_COORD_Y(5) + (i * 24 * SCALE)
+        -- points
+        spawn_bmptext(MAP_TO_COORD_X(7), yy, "   0", WHITE)
         -- PTS
-        spawn_bmptext(MAP_TO_COORD_X(10), MAP_TO_COORD_Y(5) + (i * 24 * SCALE), "PTS", WHITE)
+        spawn_bmptext(MAP_TO_COORD_X(10), yy, "PTS", WHITE)
+        -- count
+        spawn_bmptext(MAP_TO_COORD_X(13), yy, " 0"..string.char(186), WHITE)
+
+        local te = ECS:SpawnEntity({"spr", "pos"})
+        local tec = ECS:GetEntComps(te)
+        tec.spr.spritesheet = "tanks"
+        tec.spr.spriteid = ((i + 3) * 8) + 1
+        tec.spr.scalex = SCALE
+        tec.spr.scaley = SCALE
+        tec.pos.x = MAP_TO_COORD_X(14) + 8 * SCALE
+        tec.pos.y = yy - 4 * SCALE
     end
+
+    -- Rect
+    local hr = ECS:SpawnEntity({"gfxrect"})
+    local hrc = ECS:GetEntComps(hr)
+    hrc.gfxrect.rect = makeRect(MAP_TO_COORD_X(13), MAP_TO_COORD_Y(12) + 4 * SCALE, 5 * SC_TILE_WIDTH, 2 * SCALE)
+    hrc.gfxrect.color = WHITE
 
     -- TOTAL
     spawn_bmptext(MAP_TO_COORD_X(8), MAP_TO_COORD_Y(12) + 12 * SCALE, "TOTAL", WHITE)
+    spawn_bmptext(MAP_TO_COORD_X(13), MAP_TO_COORD_Y(12) + 12 * SCALE, " 0", WHITE)
 
     ECS:KillEntity(ent)
 

@@ -113,6 +113,16 @@ function callFunc(funcbind)
 	return funcbind.func(funcbind.data)
 end
 
+-- Adds num of spaces to start of text and returns new text, if txt > pad returns txt
+function spaceText(txt, pad)
+	local p = pad - string.len(txt)
+	if p > 0 then
+		return string.rep(" ", p)..txt
+	else
+		return txt
+	end
+end
+
 ----------------- Resource system
 Res = {}
 Res.Images = {}

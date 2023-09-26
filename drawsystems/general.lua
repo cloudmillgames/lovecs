@@ -36,6 +36,15 @@ DSAnimSpriteDrawer = function(ent)
 end
 ECS:DefineDrawSystem({"pos", "animspr"}, DSAnimSpriteDrawer)
 
+DSGfxRectDrawer = function(ent)
+	local c = ECS:GetEntComps(ent)
+	if c.gfxrect.color ~= nil then
+		Draw.setColor(c.gfxrect.color)
+	end
+	Draw.rectangle(c.gfxrect.layer, "fill", c.gfxrect.rect.x, c.gfxrect.rect.y, c.gfxrect.rect.w, c.gfxrect.rect.h)
+end
+ECS:DefineDrawSystem({"gfxrect"}, DSGfxRectDrawer)
+
 DSArenaBGDrawer = function(ent)
 	Draw.setColor({0, 0, 0, 1})
 	Draw.rectangle(LAYER_BG, "fill", SC_MAP_RECT[1], SC_MAP_RECT[2], MAP_TILES_COLUMNS * SC_TILE_WIDTH, MAP_TILES_ROWS * SC_TILE_HEIGHT)
@@ -58,7 +67,15 @@ DSBmpTextDrawer = function(ent)
 		local chi = comps.bmptext.text:byte(i)
 		local chr = string.char(chi)
 		local si = text.charset[chr]
-		if si == nil then si = text.Charset["g"] end
+		if si == nil then
+			-- to support symbols and arabic glyphs just use the code given
+			if chi < 35 * 6 then
+				si = chi
+			else
+				-- unknowns are dominos
+				si = 184
+			end
+		end
 		assert(type(si) == "number")
 		assert(fontss.quads[si + 1])
 		if comps.bmptext.color ~= nil then
