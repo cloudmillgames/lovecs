@@ -8,6 +8,29 @@ function add(t, v)
 	table.insert(t, v)
 end
 
+-- quick '+=' shorthand
+function incr(value, amount)
+	return value + amount
+end
+
+-- quick '-=' shorthand
+function decr(value, amount)
+	return value - amount
+end
+
+---------------- Predefined components
+-- a 2D position
+CompPos = {
+	x = 0,
+	y = 0
+}
+DefineComponent("pos", CompPos)
+-- a name for debugging
+CompName = {
+	name = "unnamed"
+}
+DefineComponent("dbgname", CompName)
+
 ---------------- Utility stuffs
 function CompEqual(comp1, comp2)
 	if #comp1 ~= #comp2 then return false end 
@@ -27,6 +50,27 @@ end
 
 function fround(x)
   return x >= 0 and math.floor(x + 0.5) or math.ceil(x - 0.5)
+end
+
+function clamp(v, min, max)
+	if v < min then
+		return min
+	elseif v > max then
+		return max
+	else
+		return v
+	end
+end
+
+function pointDistSqrd(p1, p2)
+	local dx = p1.x - p2.x
+	local dy = p1.y - p2.y
+	return dx * dx + dy * dy
+end
+
+
+function pointDist(p1, p2)
+	return math.sqrt(pointDistSqrd(p1, p2))
 end
 
 ----------------- Resource system
@@ -157,6 +201,9 @@ Draw.exec = function()
 	end
 end
 
+---------------- Collision System
+require 'collision'
+
 ---------------- Main
 btn = {
 	up = false,
@@ -182,6 +229,7 @@ function _update()
 	btn.a = love.keyboard.isDown("a")
 	btn.s = love.keyboard.isDown("s")
 	
+	Collision.run()
 	UpdateECS()
 end
 
@@ -261,6 +309,7 @@ end
 
 function love.draw()
 	_draw()
+	Collision.draw()
 	
 	-- boring white
     --love.graphics.rectangle('fill', 10,10,790,285)

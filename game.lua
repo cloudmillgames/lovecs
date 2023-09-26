@@ -47,13 +47,6 @@ end
 CInit = {}
 DefineComponent("init", CInit)
 
--- a 2D position
-CPos = {
-	x = 0,
-	y = 0
-}
-DefineComponent("pos", CPos)
-
 -- a direction of 4: 1 (up), 2 (right), 3(down), 4 (left)
 CDir = {
 	dir = 1
@@ -161,16 +154,25 @@ USInit = function(ent)
 		sc.scaley = SCALE
 	end
 	local def_player = function()
-		local se = SpawnEntity({"pos", "animspr", "player", "dir", "tank"})
-		local pc = GetEntComp(se, "pos")
-		local ac = GetEntComp(se, "animspr")
-		local tc = GetEntComp(se, "tank")
-		pc.x = MAP_TO_COORD_X(10)
-		pc.y = MAP_TO_COORD_Y(13)
-		ac.spritesheet="tanks"
-		ac.scalex = SCALE
-		ac.scaley = SCALE
-		ac.color = PLAYER_COLOR
+		local se = SpawnEntity({"dbgname", "pos", "animspr", "player", "dir", "tank", "collshape", "collid"})
+		local comps = GetEntComps(se)
+
+		comps.dbgname.name = "Player_"..tostring(se)
+
+		comps.pos.x = MAP_TO_COORD_X(10)
+		comps.pos.y = MAP_TO_COORD_Y(13)
+
+		comps.animspr.spritesheet="tanks"
+		comps.animspr.scalex = SCALE
+		comps.animspr.scaley = SCALE
+		comps.animspr.color = PLAYER_COLOR
+
+		comps.collshape.type = SHAPE_RECT
+		comps.collshape.w = 16 * SCALE
+		comps.collshape.h = 16 * SCALE
+
+		comps.collid.ent = se
+		comps.collid.layer = LAYER_PLAYER
 	end
 	local def_bg = function()
 		local se = SpawnEntity({"arena_bg"})
@@ -183,11 +185,17 @@ USInit = function(ent)
 			for i=1,MAP_TILES_COLUMNS * 2 do
 				local idx = ((j - 1) * MAP_TILES_COLUMNS * 2) + i
 				if m[idx] ~= 0 then
-					local se = SpawnEntity({"maptile", "pos"})
+					local se = SpawnEntity({"dbgname", "maptile", "pos", "collshape", "collid"})
 					local comps = GetEntComps(se)
+					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
 					comps.maptile.type = m[idx]
 					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
 					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
+					comps.collshape.type = SHAPE_RECT
+					comps.collshape.w = 8 * SCALE
+					comps.collshape.h = 8 * SCALE
+					comps.collid.ent = se
+					comps.collid.layer = LAYER_MAP
 				end
 				if m[idx] > 0 then
 					tl = tl..tostring(m[idx]).." "
@@ -282,6 +290,21 @@ USFPSCounter = function(ent)
 	end
 end
 DefineUpdateSystem({"fpscounter", "text"}, USFPSCounter)
+
+USCollisionDebug = function(ent)
+	if Collision.DEBUG then
+		local c = GetEntComps(ent)
+		for i=1,#c.collid.evt do
+			local other = c.collid.evt[i][1] == ent and 2 or 1
+			other = c.collid.evt[i][other]
+			local cc = GetEntComps(other)
+			if not IsDeadEntity(other) then
+				print("COLLISION between "..c.dbgname.name.." and "..cc.dbgname.name)
+			end
+		end
+	end
+end
+DefineUpdateSystem({"dbgname", "collshape", "collid", "pos"}, USCollisionDebug)
 
 -- Deprecated: this counts in frames not DeltaTime
 USAnimSpr_Cycle = function(ent)
