@@ -191,6 +191,12 @@ Res.GetSpriteHeight = function(ss_name)
 	return Res.Spritesheets[ss_name].quadheight
 end
 
+-- Returns sprite framecount as defined in given spritesheet
+Res.GetSpriteFramecount = function(ss_name)
+	assert(Res.Spritesheets[ss_name] ~= nil)
+	return Res.Spritesheets[ss_name].framecount
+end
+
 ----------------
 
 require('resources')
