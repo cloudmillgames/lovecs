@@ -131,6 +131,12 @@ USInitGame = function(ent)
 		end
 		print(tl)
 	end
+	local def_ui = function()
+		local uix = SC_MAP_RECT[1] + 23.5 * SC_TILE_WIDTH
+		Construct_UIEnemyCount({x=uix, y=MAP_TO_COORD_Y(1)}, 20)
+		Construct_UILivesCount({x=uix, y=MAP_TO_COORD_Y(8.5)}, 3)
+		Construct_UIStageNumber({x=uix, y=MAP_TO_COORD_Y(11.5)}, 1)
+	end
 	local def_screen_effect = function()
 		local se = ECS:SpawnEntity({"screeneffect_door"})
 		local c = ECS:GetEntComp(se, "screeneffect_door")
@@ -145,6 +151,7 @@ USInitGame = function(ent)
 	def_bg()
 	Construct_PlayerSpawner()
 	def_map(STAGE)
+	def_ui()
 	def_screen_effect()
 	Construct_SpawnDirector()
 	-- init only runs once

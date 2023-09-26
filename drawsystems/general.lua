@@ -64,7 +64,7 @@ DSBmpTextDrawer = function(ent)
 		if comps.bmptext.color ~= nil then
 			Draw.setColor(comps.bmptext.color)
 		end
-		Draw.drawQuad(LAYER_UI, fontimg, fontss.quads[si + 1], comps.pos.x + i * 8 * SCALE, comps.pos.y, 0, SCALE, SCALE)
+		Draw.drawQuad(LAYER_UI, fontimg, fontss.quads[si + 1], comps.pos.x + (i - 1) * 8 * SCALE, comps.pos.y, 0, SCALE, SCALE)
 	end
 end
 ECS:DefineDrawSystem({"pos", "bmptext"}, DSBmpTextDrawer)

@@ -64,6 +64,15 @@ TILE_GRASS = 3
 TILE_ICE = 4
 TILE_WATER = 5
 
+BLACK = {0, 0, 0, 1}
+WHITE = {1, 1, 1, 1}
+RED = {1, 0, 0, 1}
+GREEN = {0, 1, 0, 1}
+BLUE = {0, 0, 1, 1}
+CYAN = {0, 1, 1, 1}
+MAGENTA = {1, 0, 1, 1}
+YELLOW = {1, 1, 0, 1}
+
 --------------------------------------------------------------------------------------------
 ----------------- Functions
 --------------------------------------------------------------------------------------------
@@ -502,6 +511,75 @@ Trigger_GameOver = function()
 		StopSound("tank_idle")
 		StopSound("tank_moving")
 		local gameover = ECS:SpawnEntity({"gameover"})
+end
+
+Construct_UIEnemyCount = function(sc_pos, count)
+	local column = 0
+	local row = 1
+	for i=1,count do
+		local x = sc_pos.x + column * 8 * SCALE
+		local y = sc_pos.y + row * 8 * SCALE
+		local e = ECS:SpawnEntity({"pos", "spr"})
+		local c = ECS:GetEntComps(e)
+		c.pos.x = x
+		c.pos.y = y
+		c.spr.spritesheet = "tiles"
+		c.spr.spriteid = 8
+		c.spr.scalex = SCALE
+		c.spr.scaley = SCALE
+		c.spr.layer = LAYER_UI
+
+		column = column + 1
+		if column > 1 then
+			column = 0
+			row = row + 1
+		end
+	end
+end
+
+Construct_UILivesCount = function(sc_pos, count)
+	local iptext = ECS:SpawnEntity({"pos", "bmptext"})
+	local ipcomps = ECS:GetEntComps(iptext)
+	ipcomps.pos.x = sc_pos.x
+	ipcomps.pos.y = sc_pos.y
+	ipcomps.bmptext.text = "IP"
+	ipcomps.bmptext.color = BLACK
+
+	local icon = ECS:SpawnEntity({"pos", "spr"})
+	local iccomps = ECS:GetEntComps(icon)
+	iccomps.pos.x = sc_pos.x
+	iccomps.pos.y = sc_pos.y + 8 * SCALE
+	iccomps.spr.spritesheet = "tiles"
+	iccomps.spr.spriteid = 9
+	iccomps.spr.scalex = SCALE
+	iccomps.spr.scaley = SCALE
+	iccomps.spr.layer = LAYER_UI
+
+	local lives = ECS:SpawnEntity({"pos", "bmptext"})
+	local licomps = ECS:GetEntComps(lives)
+	licomps.pos.x = sc_pos.x + 8 * SCALE
+	licomps.pos.y = sc_pos.y + 8 * SCALE
+	licomps.bmptext.text = tostring(count)
+	licomps.bmptext.color = BLACK
+end
+
+Construct_UIStageNumber = function(sc_pos, num)
+	local flag = ECS:SpawnEntity({"pos", "spr"})
+	local fcomps = ECS:GetEntComps(flag)
+	fcomps.pos.x = sc_pos.x
+	fcomps.pos.y = sc_pos.y
+	fcomps.spr.spritesheet = "icons"
+	fcomps.spr.spriteid = 4
+	fcomps.spr.scalex = SCALE
+	fcomps.spr.scaley = SCALE
+	fcomps.spr.layer = LAYER_UI
+
+	local stage = ECS:SpawnEntity({"pos", "bmptext"})
+	local sc = ECS:GetEntComps(stage)
+	sc.pos.x = sc_pos.x + 8 * SCALE
+	sc.pos.y = sc_pos.y + 8 * SCALE
+	sc.bmptext.text = tostring(num)
+	sc.bmptext.color = BLACK
 end
 
 --------------------------------------------------------------------------------------------
