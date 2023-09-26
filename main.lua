@@ -25,6 +25,73 @@ function CompEqualSorted(comp1, comp2)
 	return CompEqual(comp1,comp2)
 end
 
+----------------- Resource system
+Res = {}
+Res.Images = {}
+Res.Spritesheets = {}
+Res.Init = function()
+end
+Res.LoadImage = function(name, path)
+	local info = love.filesystem.getInfo(path)
+	if info == nil then
+		error("Res.LoadImage() path not found: "..path.."("..name..")")
+	else
+		local ni = love.graphics.newImage(path)
+		Res.Images[name] = ni
+	end
+end
+Res.LoadImagesPack = function(pack)
+	for k, v in pairs(pack) do
+		Res.LoadImage(k, v)
+	end
+end
+Res.GetImage = function(name)
+	if Res.Images[name] == nil then
+		error("Res.GetImage called on undefined image: "..name)
+	end
+	return Res.Images[name]
+end
+Res.LoadSpritesheet = function(name, data)
+	-- tanks = {"ss", {0, 112}, {128, 128}, {16, 16}}
+	local img = Res.GetImage(data[1])
+	local startx = tonumber(data[2][1])
+	local starty = tonumber(data[2][2])
+	local qw = tonumber(data[4][1])
+	local qh = tonumber(data[4][2])
+	local fc = tonumber(data[3][1])/qw
+	local fr = tonumber(data[3][2])/qh
+	local frames = fc * fr
+	local ss = {
+		image=data[1],
+		framecount=frames,
+		quads={}
+	}
+	for r=1,fr do
+		for c=1,fc do
+			local zc = c - 1
+			local zr = r - 1
+			table.insert(ss.quads, love.graphics.newQuad(
+				startx + (zc * qw), starty + (zr * qh),
+				qw, qh, img:getWidth(), img:getHeight()))
+		end
+	end
+	Res.Spritesheets[name] = ss
+end
+Res.LoadSpritesheetsPack = function(pack)
+	for k, v in pairs(pack) do
+		Res.LoadSpritesheet(k, v)
+	end
+end
+-- Returns: {image="img_name", framecount=N, quads={Quad,..}}
+Res.GetSpritesheet = function(name)
+	if Res.Spritesheets[name] == nil then
+		error("Res.GetSpritesheet called on undefined: "..name)
+	end
+	return Res.Spritesheets[name]
+end
+require('resources')
+require('maps')
+
 ---------------- DrawList System
 Draw = {}
 Draw._list = {}
