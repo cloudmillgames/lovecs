@@ -302,13 +302,23 @@ USShellCollision = function(ent)
 				KillEntity(other)
 				KillEntity(ent)
 			elseif player_shell == true and other_layer == LAYER_TANKS then
-				-- TODO enemy tank impact
+				-- enemy tank impact
 				Small_Explosion(c.pos)
-				PlaySound("base_explosion")
+				PlaySound("big_explosion")
+				local othercomps = GetEntComps(other)
+				Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
 				KillEntity(other)
 				KillEntity(ent)
+				-- TODO scoring
 			elseif player_shell == false and other_layer == LAYER_PLAYER then
 				-- TODO player tank impact
+				Small_Explosion(c.pos)
+				PlaySound("big_explosion")
+				local othercomps = GetEntComps(other)
+				Big_Explosion({x=othercomps.pos.x + 8 * SCALE, y=othercomps.pos.y + 8 * SCALE})
+				KillEntity(ent)
+				KillEntity(other)
+				-- TODO Lose a live or gameover
 			end
 		end
 	end
