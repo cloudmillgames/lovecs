@@ -332,7 +332,7 @@ ECS:DefineComponent("playerspawner", CPlayerSpawner)
 CEnemyControl = {
 	change_move = {0.1, 1.0},	-- min and max time for change movement action
 	move_dir = 0,				-- 0 means stationary, UP DOWN LEFT RIGHT for directions
-	fire_percent = {0.8, 0.85},	-- percentage range of fire event
+	fire_percent = {0.8, 0.83},	-- percentage range of fire event
 	dir_percent = {.05, .15, .2, .4, .2},-- percentage of 0/UP/RIGHT/DOWN/LEFT (must total 1.0)
 	_move_timer = 0.0,
 }
@@ -374,6 +374,18 @@ ECS:DefineComponent("entarrkeep", CEntArrKeep)
 -- Used to identify enemy tanks UI so it can be fetched
 CEnemyTanksUI = {}
 ECS:DefineComponent("enemytanksui", CEnemyTanksUI)
+
+-- Handles counting and updating everything in score screen, counts all 4 lines
+CScoreCounter = {
+	total_ent = -1,
+	points_ents = {-1, -1, -1, -1},
+	count_ents = {-1, -1, -1, -1},
+	current_tank = 1,
+	count = 0,
+	total = 0,
+	pausetimer = 2	-- initial timer pause for a bit before counting
+}
+ECS:DefineComponent("scorecounter", CScoreCounter)
 
 ----------------------------------------------------- Deprecated Components
 

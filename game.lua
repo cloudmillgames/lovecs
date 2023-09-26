@@ -15,7 +15,7 @@ DOWN = 3
 LEFT = 4
 
 START_STAGE = 1
-START_LIVES = 0
+START_LIVES = 3
 
 SC_WIDTH = 1280.0
 SC_HEIGHT = 720.0
@@ -333,7 +333,7 @@ Construct_SpawnDirector = function()
 	local c = ECS:GetEntComp(se, "spawndirector")
 
 	c.active = true
-	c.spawns = 2
+	c.spawns = 20
 	c.cooldown = 2.0
 
 	local zones = {
