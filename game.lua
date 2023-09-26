@@ -55,6 +55,7 @@ LoadResources = function()
 	Res.LoadImagesPack(RES_IMAGES)
 	Res.LoadSpritesheetsPack(RES_SPRITESHEETS)
 	Res.LoadSoundEffectsPack(RES_SOUNDEFFECTS)
+	Res.LoadMusicPack(RES_MUSIC)
 	Res.SoundEffects["tank_idle"]:setLooping(true)
 	Res.SoundEffects["tank_moving"]:setLooping(true)
 end
@@ -87,13 +88,21 @@ Construct_LevelScreen = function()
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
 	KillAllEntities()
 	local def_text = function()
-		local se = SpawnEntity({"pos", "bmptext"})
+		local se = SpawnEntity({"pos", "bmptext", "delayedfunc"})
 		local c = GetEntComps(se)
 		c.pos.x = (1280 / 2) - (8 * 5 * SCALE)
 		c.pos.y = (720 / 2) - 4
 		c.bmptext.text = "STAGE   "..tostring(STAGE)
+		c.bmptext.color = {0, 0, 0, 1}
+		c.delayedfunc.delay = 1.5
+		c.delayedfunc.func = Construct_Gameplay
+		Music.play("level_start")
 	end
 	def_text()
+end
+
+Construct_Gameplay = function()
+	local se = SpawnEntity({"initgame"})
 end
 
 ----------------- Define Components
@@ -276,12 +285,21 @@ USInitGame = function(ent)
 		end
 		print(tl)
 	end
+	local def_screen_effect = function()
+		local se = SpawnEntity({"screeneffect_door"})
+		local c = GetEntComp(se, "screeneffect_door")
+		c.duration = 1
+		c.stay = 0
+		c.rect_color = ARENA_BG_COLOR
+		c.opening = true
+	end
 	LoadResources()
 	def_fps()
 	def_goal()
 	def_bg()
 	def_player()
 	def_map(STAGE)
+	def_screen_effect()
 	-- init only runs once
 	KillEntity(ent)
 end
@@ -494,6 +512,7 @@ USScreenEffect_Door = function(ent)
 	local secd = GetEntComp(ent, "screeneffect_door")
 	if secd._timer_duration < secd.duration then
 		secd._timer_duration = math.min(secd._timer_duration + DeltaTime, secd.duration)
+		print(tostring(secd._timer_duration))
 	elseif secd._timer_stay < secd.stay then
 		secd._timer_stay = math.min(secd._timer_stay + DeltaTime, secd.stay)
 		if secd._timer_stay >= secd.stay then
@@ -552,6 +571,9 @@ DSBmpTextDrawer = function(ent)
 		if si == nil then si = text.Charset["g"] end
 		assert(type(si) == "number")
 		assert(fontss.quads[si + 1])
+		if comps.bmptext.color ~= nil then
+			Draw.setColor(comps.bmptext.color)
+		end
 		Draw.drawQuad(LAYER_UI, fontimg, fontss.quads[si + 1], comps.pos.x + i * 8 * SCALE, comps.pos.y, 0, SCALE, SCALE)
 	end
 end
