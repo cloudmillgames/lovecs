@@ -383,7 +383,9 @@ btn = {
 	z = 0,
 	x = 0,
 	a = 0,
-	s = 0
+	s = 0,
+	-- Debug keys 1-9
+	debug = {0, 0, 0, 0, 0, 0, 0, 0, 0}
 }
 
 function _init()
@@ -399,7 +401,10 @@ function _update()
 	btn.x = love.keyboard.isDown("x") and btn.x + 1 or 0
 	btn.a = love.keyboard.isDown("a") and btn.a + 1 or 0
 	btn.s = love.keyboard.isDown("s") and btn.s + 1 or 0
-	
+	for i=1,9 do
+		btn.debug[i] = love.keyboard.isDown(tostring(i)) and btn.debug[i] + 1 or 0
+	end
+
 	Msging.run()
 	Collision.run()
 

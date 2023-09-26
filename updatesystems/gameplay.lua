@@ -175,6 +175,9 @@ USInitGame = function(ent)
 	def_ui()
 	def_screen_effect()
 	Construct_SpawnDirector(2)
+	if DEBUG_MODE then
+		local dk = ECS:SpawnEntity({"debugkeys"})
+	end
 	-- init only runs once
 	ECS:KillEntity(ent)
 end
@@ -493,7 +496,7 @@ USSpawnDirector = function(ent)
 				end
 			else
 				if alive_count == 0 then
-					Msging.dispatchEntity(sd.msg_channel, sd.msg_on_finish)
+					Trigger_Victory()
 					ECS:KillEntity(ent)
 				end
 			end
@@ -630,13 +633,21 @@ USPlayerDeath = function(ent)
 end
 ECS:DefineUpdateSystem({"playerdeath"}, USPlayerDeath)
 
-USVictoryChecker = function(ent)
+USDebugKeys = function(ent)
 	local c = ECS:GetEntComps(ent)
-	for _, m in pairs(c.msg_receiver.msgs) do
-		if m.msg == MSG_SPAWNS_FINISHED then
-			Trigger_Victory()
+	if btn.debug[c.debugkeys.killplayer] == 1 then
+		local plr = ECS:GetFirstEntityWith({"player", "tank"})
+		if plr then
+			local pc = ECS:GetEntComps(plr)
+			-- player tank impact
+			PlaySound("big_explosion")
+			Big_Explosion({x=pc.pos.x + 8 * SCALE, y=pc.pos.y + 8 * SCALE})
+			ECS:KillEntity(plr)
+			-- Lose a live or gameover
+			local playerdeath = ECS:SpawnEntity({"playerdeath"})
+		else
+			print("DebugKeys: NO PLAYER TO KILL")
 		end
 	end
-	c.msg_receiver.msgs = {}
 end
-ECS:DefineUpdateSystem({"player", "msg_receiver"}, USVictoryChecker)
+ECS:DefineUpdateSystem({"debugkeys"}, USDebugKeys)

@@ -16,6 +16,7 @@ LEFT = 4
 
 START_STAGE = 1
 START_LIVES = 3
+DEBUG_MODE = true	-- debug keys etc
 
 SC_WIDTH = 1280.0
 SC_HEIGHT = 720.0
@@ -608,7 +609,7 @@ Trigger_Victory = function()
 	local ss = ECS:GetTaggedEnt("stagestate")
 	local state = ECS:GetEntComp(ss, "stagestate")
 
-	if state.victory == false then
+	if not state.gameover and state.victory == false then
 		local action_victory = ECS:SpawnEntity({"delayedfunc"})
 		local ac = ECS:GetEntComps(action_victory)
 		ac.delayedfunc.func = Construct_EndStage

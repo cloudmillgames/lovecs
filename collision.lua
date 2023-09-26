@@ -16,7 +16,6 @@ Collision = {}
 Collision._thresholdPointPoint = 1.0
 Collision._debugColor = {1, 0, 0, 0.35}
 Collision._debugSensorColor = {0, 0, 1, 0.35}
-Collision.DEBUG = true
 
 -- Point = {x=N, y=N}
 function Collision.pointPoint(p1, p2)
@@ -306,7 +305,7 @@ Collision.run = function()
 end
 
 Collision.draw = function()
-    if Collision.DEBUG then
+    if DEBUG_MODE then
         local prev_color = {love.graphics.getColor()}
         local ents = ECS:CollectEntitiesWith({"pos", "collshape", "collid"})
         for i=1,#ents do

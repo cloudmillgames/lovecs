@@ -19,6 +19,17 @@ CStageState = {
 }
 ECS:DefineComponent("stagestate", CStageState)
 
+-- Debug keys numbers
+CDebugKeys = {
+	upgrade 	= 1,
+	killall 	= 2,
+	extralife 	= 3,
+	shield 		= 4,
+	barricade 	= 5,
+	killplayer 	= 9
+}
+ECS:DefineComponent("debugkeys", CDebugKeys)
+
 -- a direction of 4: 1 (up), 2 (right), 3(down), 4 (left)
 CDir = {
 	dir = 1
