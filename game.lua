@@ -111,30 +111,43 @@ end
 Fire_Shell = function(ent)
 	local ec = GetEntComps(ent)
 	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
+	local bul_center = {x=2, y=2}
 	if ec.dir.dir == RIGHT then
-		rel_offset.x = ec.collshape.x + ec.collshape.w - ec.tankturret.fire_point.y
-		rel_offset.y = ec.tankturret.fire_point.x
+		rel_offset.x = ec.collshape.x + ec.collshape.w - ec.tankturret.fire_point.y - bul_center.y
+		rel_offset.y = ec.tankturret.fire_point.x - bul_center.x
 	elseif ec.dir.dir == DOWN then
-		rel_offset.y = ec.collshape.y + ec.collshape.h - rel_offset.y
+		rel_offset.x = rel_offset.x - bul_center.x
+		rel_offset.y = ec.collshape.y + ec.collshape.h - rel_offset.y - bul_center.y
 	elseif ec.dir.dir == LEFT then
-		rel_offset.x = ec.tankturret.fire_point.y
-		rel_offset.y = ec.tankturret.fire_point.x
+		rel_offset.x = ec.tankturret.fire_point.y - bul_center.y
+		rel_offset.y = ec.tankturret.fire_point.x - bul_center.x
 	elseif ec.dir.dir == UP then
+		rel_offset.x = rel_offset.x - bul_center.x
+		rel_offset.y = rel_offset.y - bul_center.y
 	end
-	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill"})
+	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill", "collshape", "collid"})
 	local c = GetEntComps(be)
+	-- projectile
 	c.projectile.speed = 2 * SCALE
 	c.projectile.shooter_entity = ent
+	-- sprite
 	c.spr.spritesheet = "bullets"
 	c.spr.spriteid = 1
 	c.spr.scalex = SCALE
 	c.spr.scaley = SCALE
 	c.spr.layer = LAYER_PROJECTILES
+	c.spr.spriteid = ec.dir.dir
+	-- position
 	c.pos.x = ec.pos.x + rel_offset.x
 	c.pos.y = ec.pos.y + rel_offset.y
+	-- direction
 	c.dir.dir = ec.dir.dir
-
-	print("FIRESHELL, relX = "..tostring(rel_offset.x).." ,relY = "..tostring(rel_offset.y))
+	-- collision
+	c.collshape.type = SHAPE_RECT
+	c.collshape.w = 3
+	c.collshape.h = 3
+	c.collid.ent = be
+	c.collid.layer = LAYER_PROJECTILES
 end
 
 GetMovementFromDir = function(dir)
@@ -254,7 +267,7 @@ USInitGame = function(ent)
 		comps.collid.ent = se
 		comps.collid.layer = LAYER_PLAYER
 
-		comps.tankturret.fire_point = {x = 5 * SCALE, y = 0}
+		comps.tankturret.fire_point = {x = 7 * SCALE, y = 0}
 
 		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
