@@ -547,9 +547,15 @@ USEnemyControl = function(ent)
 	c.enemycontrol._move_timer = math.max(c.enemycontrol._move_timer - DeltaTime, 0)
 
 	-- fire shell
-	local should_fire = love.math.random()
-	if should_fire >= c.enemycontrol.fire_percent[1] and should_fire < c.enemycontrol.fire_percent[2] then
-		c.tankturret.trigger = true
+	if c.enemycontrol._fire_timer > 0 then
+		c.enemycontrol._fire_timer = math.max(c.enemycontrol._fire_timer - DeltaTime, 0)
+	else
+		local should_fire = love.math.random()
+		if should_fire >= c.enemycontrol.fire_percent[1] and should_fire < c.enemycontrol.fire_percent[2] then
+			c.tankturret.trigger = true
+		end
+		-- fire checks at 20 fps
+		c.enemycontrol._fire_timer = 1 / 20
 	end
 end
 ECS:DefineUpdateSystem({"enemycontrol", "tank", "tankturret", "dir"}, USEnemyControl)
