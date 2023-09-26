@@ -5,6 +5,7 @@
 -- ecsSystem: { {proc, ent_bucket}, .. }
 -- ecsBucketsList: { bucket_id = comps_list, .. }
 -- ecsBucket: { bucket_id = {ent0id, ent1id, ..}, bucket_id = {ent2id, ent5id, ..}, .. }
+-- ecsNamedEnts: { name1 = {ent0id, ent1id, ..}, name2 = ..}
 
 local ECS = {}
 ECS.__index = ECS
@@ -20,7 +21,8 @@ function ECS.new()
 	ecs._USystems = {}
 	ecs._DSystems = {}
 	ecs._BucketsList = {}
-	ecs._Buckets = {} 
+	ecs._Buckets = {}
+	ecs._NamedEnts = {}
 
 	return ecs
 end
@@ -148,6 +150,37 @@ end
 function ECS:_RebucketEnt(eid, oldcomps, newcomps)
 	self:_RemEntFromBuckets(eid)
 	self:_AddEntToBuckets(eid, newcomps)
+end
+
+-- Get rid of all named dead entities, be as lazy as possible
+-- returns true if some ents found in that name, false if none found
+function ECS:_RefreshNamedEnts(name)
+	local curr_ents = self._NamedEnts[name]
+	if curr_ents == nil then
+		return false
+	end
+
+	local count = 0
+	for _,e in pairs(curr_ents) do
+		if self._Entities[e] ~= nil then
+			count = count + 1
+		end
+	end
+
+	if count == 0 then
+		self._NamedEnts[name] = nil
+		return false
+	end
+
+	if count < #curr_ents then
+		local new_ents = {}
+		for _,e in pairs(curr_ents) do
+			add(new_ents, e)
+		end
+		self._NamedEnts[name] = new_ents
+	end
+
+	return true
 end
 
 -----------------------------------------------------------
@@ -337,6 +370,42 @@ function ECS:CountLiveEntities()
 		c=c+1
 	end
 	return c
+end
+
+-- Get first ent that matches name, nil if no match
+function ECS:GetNamedEnt(name)
+	if self:_RefreshNamedEnts(name) then
+		local ents = self._NamedEnts[name]
+		for _, e in ents do
+			return e
+		end
+	end
+	return nil
+end
+
+-- Get all entities named name
+function ECS:GetNamedEnts(name)
+	if self:_RefreshNamedEnts(name) then
+		return self._NamedEnts[name]
+	end
+	return nil
+end
+
+-- Count all entities named name
+function ECS:CountNamedEnts(name)
+	if self:_RefreshNamedEnts(name) then
+		return #self._NamedEnts[name]
+	else
+		return 0
+	end
+end
+
+-- Set entitiy name
+function ECS:SetEntName(name, ent)
+	if self._NamedEnts[name] == nil then
+		self._NamedEnts[name] = {}
+	end
+	add(self._NamedEnts[name], ent)
 end
 
 return ECS
