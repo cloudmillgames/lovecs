@@ -23,9 +23,11 @@ DefineUpdateSystem({"killmsg"}, USKillMsg)
 -- Entity position linked to a parent position with an offset
 USPosLink = function(ent)
 	local comps = GetEntComps(ent)
-	local parent_pos = GetEntComp(comps.poslink.parent, "pos")
-	comps.pos.x = parent_pos.x + comps.poslink.offsetx
-	comps.pos.y = parent_pos.y + comps.poslink.offsety
+	if IsDeadEntity(comps.poslink.parent) == false then
+		local parent_pos = GetEntComp(comps.poslink.parent, "pos")
+		comps.pos.x = parent_pos.x + comps.poslink.offsetx
+		comps.pos.y = parent_pos.y + comps.poslink.offsety
+	end
 end
 DefineUpdateSystem({"poslink", "pos"}, USPosLink)
 

@@ -294,6 +294,7 @@ Construct_TankMotionSensors = function(entity, step)
 
 		c.collid.ent = s
 		c.collid.layer = comps.collid.layer
+		c.collid.sensor = true
 
 		add(sensors, s)
 	end
