@@ -232,7 +232,48 @@ USInit = function(ent)
 		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
 	local def_bg = function()
+		-- Arena background
 		local se = SpawnEntity({"arena_bg"})
+		-- Arena boundaries
+		local bounds = {}
+		for i=1,4 do
+			local be = SpawnEntity({"dbgname", "pos", "collshape", "collid"})
+			local comps = GetEntComps(be)
+			comps.dbgname.name = "Bound_"
+			comps.collshape.type = SHAPE_RECT
+			comps.collid.ent = be
+			comps.collid.dynamic = false
+			comps.collid.layer = LAYER_BG
+			add(bounds, be)
+		end
+		local bound_rect = {
+			x=SC_MAP_RECT[1] - SC_TILE_WIDTH,
+			y=SC_MAP_RECT[2] - SC_TILE_HEIGHT,
+			w=SC_MAP_RECT[3] + SC_TILE_WIDTH * 2,
+			h=SC_MAP_RECT[4] + SC_TILE_HEIGHT * 2}
+		local up_shape = GetEntComp(bounds[UP], "collshape")
+		up_shape.x = bound_rect.x
+		up_shape.y = bound_rect.y
+		up_shape.w = bound_rect.w
+		up_shape.h = SC_TILE_HEIGHT
+
+		local right_shape = GetEntComp(bounds[RIGHT], "collshape")
+		right_shape.x = bound_rect.x + bound_rect.w - SC_TILE_WIDTH
+		right_shape.y = bound_rect.y + SC_TILE_HEIGHT
+		right_shape.w = SC_TILE_WIDTH
+		right_shape.h = bound_rect.h - SC_TILE_HEIGHT * 2
+
+		local down_shape = GetEntComp(bounds[DOWN], "collshape")
+		down_shape.x = bound_rect.x
+		down_shape.y = bound_rect.y + bound_rect.h - SC_TILE_HEIGHT
+		down_shape.w = bound_rect.w
+		down_shape.h = SC_TILE_HEIGHT
+
+		local left_shape = GetEntComp(bounds[LEFT], "collshape")
+		left_shape.x = bound_rect.x
+		left_shape.y = bound_rect.y + SC_TILE_HEIGHT
+		left_shape.w = SC_TILE_WIDTH
+		left_shape.h = bound_rect.h - SC_TILE_HEIGHT * 2
 	end
 	local def_map = function(mapnum)
 		-- Load map tiles
