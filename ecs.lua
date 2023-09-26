@@ -5,7 +5,7 @@
 -- ecsSystem: { {proc, ent_bucket}, .. }
 -- ecsBucketsList: { bucket_id = comps_list, .. }
 -- ecsBucket: { bucket_id = {ent0id, ent1id, ..}, bucket_id = {ent2id, ent5id, ..}, .. }
--- ecsNamedEnts: { name1 = {ent0id, ent1id, ..}, name2 = ..}
+-- ecsTaggedEnts: { name1 = {ent0id, ent1id, ..}, name2 = ..}
 
 local ECS = {}
 ECS.__index = ECS
@@ -22,7 +22,7 @@ function ECS.new()
 	ecs._DSystems = {}
 	ecs._BucketsList = {}
 	ecs._Buckets = {}
-	ecs._NamedEnts = {}
+	ecs._TaggedEnts = {}
 
 	return ecs
 end
@@ -154,8 +154,8 @@ end
 
 -- Get rid of all named dead entities, be as lazy as possible
 -- returns true if some ents found in that name, false if none found
-function ECS:_RefreshNamedEnts(name)
-	local curr_ents = self._NamedEnts[name]
+function ECS:_RefreshTaggedEnts(name)
+	local curr_ents = self._TaggedEnts[name]
 	if curr_ents == nil then
 		return false
 	end
@@ -168,7 +168,7 @@ function ECS:_RefreshNamedEnts(name)
 	end
 
 	if count == 0 then
-		self._NamedEnts[name] = nil
+		self._TaggedEnts[name] = nil
 		return false
 	end
 
@@ -177,7 +177,7 @@ function ECS:_RefreshNamedEnts(name)
 		for _,e in pairs(curr_ents) do
 			add(new_ents, e)
 		end
-		self._NamedEnts[name] = new_ents
+		self._TaggedEnts[name] = new_ents
 	end
 
 	return true
@@ -217,8 +217,8 @@ function ECS:DefineDrawSystem(comps_list, system_proc)
 	add(self._DSystems, {proc = system_proc, ent_buckid = buckid})
 end
 
--- name_entity: optional name to register this entity under
-function ECS:SpawnEntity(comps_list, name_entity)
+-- tag_name: optional name to register this entity under
+function ECS:SpawnEntity(comps_list, tag_name)
 	local eid = self:_NextEntityId()
 	local comps_data = {} 
 	table.sort(comps_list)
@@ -234,8 +234,8 @@ function ECS:SpawnEntity(comps_list, name_entity)
 		add(self._Buckets[cbucks[i]], eid)
 	end
 
-	if type(name_entity) == "string" and #name_entity > 0 then
-		ECS:SetEntName(name_entity, eid)
+	if type(tag_name) == "string" and #tag_name > 0 then
+		self:SetEntTag(eid, tag_name)
 	end
 
 	return eid
@@ -322,7 +322,7 @@ function ECS:KillAllEntities()
 		table.insert(self._DeadEntities, self._Entities[i])
 	end
 	self._Entities = {}
-	self._NamedEnts = {}
+	self._TaggedEnts = {}
 	--ecsEntityId = 1 this breaks collision and other stuff somehow
 end
 
@@ -380,9 +380,9 @@ function ECS:CountLiveEntities()
 end
 
 -- Get first ent that matches name, nil if no match
-function ECS:GetNamedEnt(name)
-	if self:_RefreshNamedEnts(name) then
-		local ents = self._NamedEnts[name]
+function ECS:GetTaggedEnt(tag)
+	if self:_RefreshTaggedEnts(tag) then
+		local ents = self._TaggedEnts[tag]
 		for _, e in ents do
 			return e
 		end
@@ -390,29 +390,33 @@ function ECS:GetNamedEnt(name)
 	return nil
 end
 
--- Get all entities named name
-function ECS:GetNamedEnts(name)
-	if self:_RefreshNamedEnts(name) then
-		return self._NamedEnts[name]
+-- Get all entities tagged name
+function ECS:GetTaggedEnts(tag)
+	if self:_RefreshTaggedEnts(tag) then
+		return self._TaggedEnts[tag]
 	end
 	return nil
 end
 
--- Count all entities named name
-function ECS:CountNamedEnts(name)
-	if self:_RefreshNamedEnts(name) then
-		return #self._NamedEnts[name]
+-- Count all entities tagged name
+function ECS:CountTaggedEnts(tag)
+	if self:_RefreshTaggedEnts(tag) then
+		return #self._TaggedEnts[tag]
 	else
 		return 0
 	end
 end
 
--- Set entitiy name
-function ECS:SetEntName(name, ent)
-	if self._NamedEnts[name] == nil then
-		self._NamedEnts[name] = {}
+function ECS:HasTaggedEnt(tag)
+	return ECS:CountTaggedEnts(tag) > 0
+end
+
+-- Set entitiy tag
+function ECS:SetEntTag(ent, tag)
+	if self._TaggedEnts[tag] == nil then
+		self._TaggedEnts[tag] = {}
 	end
-	add(self._NamedEnts[name], ent)
+	add(self._TaggedEnts[tag], ent)
 end
 
 return ECS
