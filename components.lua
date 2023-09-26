@@ -119,7 +119,8 @@ CMove4 = {
 DefineComponent("move4", CMove4)
 
 CBmpText = {
-    text = ""
+    text = "",
+    color = nil
 }
 DefineComponent("bmptext", CBmpText)
 
