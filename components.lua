@@ -177,7 +177,8 @@ DefineComponent("screeneffect_door", CScreenEffect_Door)
 CTankTurret = {
 	cooldown = 1,
 	bullet_type = 1,
-	_timer_cooldown =0
+	_timer_cooldown =0,
+	fire_point = {x=0, y=0}	-- offset for spawning UP, directionally aware
 }
 DefineComponent("tankturret", CTankTurret)
 
@@ -186,3 +187,7 @@ CProjectile = {
 	shooter_entity=0
 }
 DefineComponent("projectile", CProjectile)
+
+COutOfBoundsKill = {
+}
+DefineComponent("outofbounds_kill", COutOfBoundsKill)

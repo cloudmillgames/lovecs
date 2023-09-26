@@ -10,6 +10,8 @@ DOWN = 3
 LEFT = 4
 
 STAGE = 1
+SC_WIDTH = 1280.0
+SC_HEIGHT = 720.0
 ORG_WIDTH = 256.0
 ORG_HEIGHT = 224.0
 SCALE = 3.0
@@ -108,7 +110,17 @@ end
 
 Fire_Shell = function(ent)
 	local ec = GetEntComps(ent)
-	local be = SpawnEntity({"projectile", "spr", "pos", "dir"})
+	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
+	if ec.dir.dir == RIGHT then
+		rel_offset.x = -ec.tankturret.fire_point.y
+		rel_offset.y = ec.tankturret.fire_point.x
+	elseif ec.dir.dir == DOWN then
+		rel_offset.y = -rel_offset.y
+	elseif ec.dir.dir == LEFT then
+		rel_offset.x = ec.tankturret.fire_point.y
+		rel_offset.y = ec.tankturret.fire_point.x
+	end
+	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill"})
 	local c = GetEntComps(be)
 	c.projectile.speed = 2 * SCALE
 	c.projectile.shooter_entity = ent
@@ -117,8 +129,8 @@ Fire_Shell = function(ent)
 	c.spr.scalex = SCALE
 	c.spr.scaley = SCALE
 	c.spr.layer = LAYER_PROJECTILES
-	c.pos.x = ec.pos.x
-	c.pos.y = ec.pos.y
+	c.pos.x = ec.pos.x + rel_offset.x
+	c.pos.y = ec.pos.y + rel_offset.y
 	c.dir.dir = ec.dir.dir
 end
 
@@ -238,6 +250,8 @@ USInitGame = function(ent)
 
 		comps.collid.ent = se
 		comps.collid.layer = LAYER_PLAYER
+
+		comps.tankturret.fire_point = {x = 5 * SCALE, y = 0}
 
 		def_vehicle_motion_sensor(se, TANK_STEP * SCALE)
 	end
@@ -571,6 +585,14 @@ USScreenEffect_Door = function(ent)
 	end
 end
 DefineUpdateSystem({"screeneffect_door"}, USScreenEffect_Door)
+
+USOutOfBoundsKill = function(ent)
+	local c = GetEntComps(ent)
+	if c.pos.x > SC_WIDTH + 1000 or c.pos.x < -1000 or c.pos.y > SC_HEIGHT + 1000 or c.pos.y < -1000 then
+		KillEntity(ent)
+	end
+end
+DefineUpdateSystem({"outofbounds_kill", "pos"}, USOutOfBoundsKill)
 
 ----------------- Define draw systems
 DSTextDrawer = function(ent)
