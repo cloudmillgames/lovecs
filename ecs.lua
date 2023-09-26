@@ -166,7 +166,7 @@ function DefineDrawSystem(comps_list, system_proc)
 	add(ecsDSystems, {proc = system_proc, ent_bucket = bucket})
 end
 
-function SpawnEntity(comps_list)
+function Entity(comps_list)
 	local eid = ecsNextEntityId()
 	local comps_data = {} 
 	table.sort(comps_list)
@@ -226,7 +226,7 @@ end
 
 function KillEntity(eid)
 	ecsRemEntFromBuckets(eid)
-	table.remove(ecsEntities, eid)
+	ecsEntities[eid] = nil
 end 
 
 function KillAllEntities()
