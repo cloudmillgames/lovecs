@@ -193,14 +193,15 @@ Collision.draw = function()
             local cs = {}
 
             if c.collshape.type == SHAPE_POINT then
-                add(ps, c.pos)
+                add(ps, c.pos.x)
+                add(ps, c.pos.y)
             elseif c.collshape.type == SHAPE_RECT then
                 add(rs, {c.pos.x + c.collshape.x, c.pos.y + c.collshape.y, c.collshape.w, c.collshape.h})
             elseif c.collshape.type == SHAPE_CIRCLE then
                 add(cs, {c.pos.x + c.collshape.x, c.pos.y + c.collshape.y, c.collshape.w})
             end
 
-            if #ps > 0 then
+            if #ps > 1 then
                 love.graphics.points(ps)
             end
             for j=1,#rs do
