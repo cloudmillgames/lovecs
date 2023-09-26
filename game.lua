@@ -27,6 +27,7 @@ SC_TILE_HEIGHT = MAP_TILE_HEIGHT * SCALE
 SC_MAP_RECT = {MAP_START_X * SCALE, MAP_START_Y * SCALE, MAP_TILES_COLUMNS * MAP_TILE_WIDTH * SCALE, MAP_TILES_ROWS * MAP_TILE_HEIGHT * SCALE}
 PLAYER_COLOR = {0.89, 0.894, 0.578, 1}
 TANK_STEP = 4.0
+SHELL_SPEED = 1.0
 
 LAYER_BG = 10
 LAYER_MAP = 20
@@ -108,7 +109,7 @@ Construct_Gameplay = function()
 	local se = SpawnEntity({"initgame"})
 end
 
-Fire_Shell = function(ent)
+Fire_Shell = function(ent, is_player)
 	local ec = GetEntComps(ent)
 	local rel_offset = {x=ec.tankturret.fire_point.x, y=ec.tankturret.fire_point.y}
 	local bul_center = {x=2, y=2}
@@ -125,10 +126,11 @@ Fire_Shell = function(ent)
 		rel_offset.x = rel_offset.x - bul_center.x
 		rel_offset.y = rel_offset.y - bul_center.y
 	end
+
 	local be = SpawnEntity({"projectile", "spr", "pos", "dir", "outofbounds_kill", "collshape", "collid"})
 	local c = GetEntComps(be)
 	-- projectile
-	c.projectile.speed = 2 * SCALE
+	c.projectile.speed = SHELL_SPEED * SCALE
 	c.projectile.shooter_entity = ent
 	-- sprite
 	c.spr.spritesheet = "bullets"
@@ -144,10 +146,15 @@ Fire_Shell = function(ent)
 	c.dir.dir = ec.dir.dir
 	-- collision
 	c.collshape.type = SHAPE_RECT
-	c.collshape.w = 3
-	c.collshape.h = 3
+	c.collshape.w = 3 * SCALE
+	c.collshape.h = 3 * SCALE
 	c.collid.ent = be
 	c.collid.layer = LAYER_PROJECTILES
+
+	-- Specific to player
+	if is_player == true then
+		Res.SoundEffects["tank_fire"]:play()
+	end
 end
 
 GetMovementFromDir = function(dir)
@@ -166,6 +173,7 @@ end
 require 'components'
 
 ----------------- Define update systems
+-- Initializes start screen sequence
 USInitStart = function(ent)
 	KillAllEntities()
 	local def_title = function()
@@ -189,6 +197,7 @@ USInitStart = function(ent)
 end
 DefineUpdateSystem({"initstart"}, USInitStart)
 
+-- Initializes actual gameplay start
 USInitGame = function(ent)
 	love.graphics.setBackgroundColor(ARENA_BG_COLOR)
 	KillAllEntities()
@@ -365,6 +374,7 @@ USInitGame = function(ent)
 end
 DefineUpdateSystem({"initgame"}, USInitGame)
 
+-- Reads player movement input and plays tank engine sounds
 USPlayerUpdate = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
@@ -389,11 +399,12 @@ USPlayerUpdate = function(ent)
 end
 DefineUpdateSystem({"player", "dir", "tank"}, USPlayerUpdate)
 
+-- Reads player fire input and applies turret cooldown, fires shell
 USPlayerTankTurret = function(ent)
 	local c = GetEntComps(ent)
 	if btn.z == 1 then
 		if c.tankturret._timer_cooldown == 0 then
-			Fire_Shell(ent)
+			Fire_Shell(ent, true)
 			c.tankturret._timer_cooldown = c.tankturret.cooldown
 		end
 	else
@@ -402,6 +413,7 @@ USPlayerTankTurret = function(ent)
 end
 DefineUpdateSystem({"player", "tankturret", "dir", "pos", "collshape"}, USPlayerTankTurret)
 
+-- Moves tank shell
 USTankShell = function(ent)
 	local c = GetEntComps(ent)
 	local mov = GetMovementFromDir(c.dir.dir)
@@ -410,6 +422,26 @@ USTankShell = function(ent)
 end
 DefineUpdateSystem({"projectile", "pos", "dir"}, USTankShell)
 
+-- Tank shell collision handler
+USShellCollision = function(ent)
+	local c = GetEntComps(ent)
+	local events = c.collid.events
+	for i=1,#events do
+		local other = events[i][1]
+		if other == ent then
+			other = events[i][2]
+		end
+		local other_collid = GetEntComp(other, "collid")
+		local other_layer = other_collid.layer
+		if other_layer == LAYER_MAP then
+			-- TODO spawn small explosion where we are
+			KillEntity(ent)
+		end
+	end
+end
+DefineUpdateSystem({"projectile", "pos", "dir", "collshape", "collid"}, USShellCollision)
+
+-- Handles tank throttle preprocessing for direction and motion sensing to detect movement blockers
 USTankThrottle = function(ent)
 	local comps = GetEntComps(ent)
 	if comps.tank.moving == 0 then
@@ -428,6 +460,7 @@ USTankThrottle = function(ent)
 end
 DefineUpdateSystem({"player", "dir", "tank", "motionsensor4"}, USTankThrottle)
 
+-- Updates tank sprite animation and applies actual throttle movement with stepping and rounding
 USTankUpdate = function(ent)
 	local comps = GetEntComps(ent)
 	-- Update frame to match direction and chain tick
@@ -467,6 +500,7 @@ USTankUpdate = function(ent)
 end
 DefineUpdateSystem({"tank", "animspr", "dir", "pos"}, USTankUpdate)
 
+-- Counts frames per second and updates text component to show fps
 USFPSCounter = function(ent)
 	local comps = GetEntComps(ent)
 	comps.fpscounter.frame_count = comps.fpscounter.frame_count + 1
@@ -479,14 +513,15 @@ USFPSCounter = function(ent)
 end
 DefineUpdateSystem({"fpscounter", "text"}, USFPSCounter)
 
+-- Show collisions debug traces
 USCollisionDebug = function(ent)
 	if Collision.DEBUG then
 		local c = GetEntComps(ent)
 		for i=1,#c.collid.events do
 			local other = c.collid.events[i][1] == ent and 2 or 1
 			other = c.collid.events[i][other]
-			local cc = GetEntComps(other)
 			if not IsDeadEntity(other) and HasEntComp(ent, "dbgname") and HasEntComp(other, "dbgname") then
+				local cc = GetEntComps(other)
 				print("COLLISION between "..c.dbgname.name.." and "..cc.dbgname.name)
 			end
 		end
@@ -494,6 +529,7 @@ USCollisionDebug = function(ent)
 end
 DefineUpdateSystem({"dbgname", "collshape", "collid", "pos"}, USCollisionDebug)
 
+-- Entity position linked to a parent position with an offset
 USPosLink = function(ent)
 	local comps = GetEntComps(ent)
 	local parent_pos = GetEntComp(comps.poslink.parent, "pos")
@@ -502,6 +538,7 @@ USPosLink = function(ent)
 end
 DefineUpdateSystem({"poslink", "pos"}, USPosLink)
 
+-- 2D Linear movement of position from origin to destination in duration
 USMove4 = function(ent)
 	local c = GetEntComps(ent)
 	if c.move4.finished == false then
@@ -526,7 +563,7 @@ USMove4 = function(ent)
 end
 DefineUpdateSystem({"move4", "pos"}, USMove4)
 
--- Deprecated: this counts in frames not DeltaTime
+-- Cycles all sprite frames, counts in frames so not useful for actual game but maybe debugging and UI
 USAnimSpr_Cycle = function(ent)
 	local comps = GetEntComps(ent)
 	comps.animspr_cycle._framecount = comps.animspr_cycle._framecount + 1
@@ -545,6 +582,7 @@ USAnimSpr_Cycle = function(ent)
 end
 DefineUpdateSystem({"animspr", "animspr_cycle"}, USAnimSpr_Cycle)
 
+-- Handles movement input and selection of Battlecity menu cursor, applies fullscreen door effect on selection
 USMenuCursor = function(ent)
 	local comps = GetEntComps(ent)
 	-- Input
@@ -579,6 +617,7 @@ USMenuCursor = function(ent)
 end
 DefineUpdateSystem({"menucursor", "uianimspr"}, USMenuCursor)
 
+-- Calls a function after the specified delay, kills self when function is called
 USDelayedFunc = function(ent)
 	local df = GetEntComp(ent, "delayedfunc")
 	df.delay = df.delay - DeltaTime
@@ -589,6 +628,7 @@ USDelayedFunc = function(ent)
 end
 DefineUpdateSystem({"delayedfunc"}, USDelayedFunc)
 
+-- Fullscreen door transition effect
 USScreenEffect_Door = function(ent)
 	local secd = GetEntComp(ent, "screeneffect_door")
 	if secd._timer_duration < secd.duration then
@@ -602,6 +642,7 @@ USScreenEffect_Door = function(ent)
 end
 DefineUpdateSystem({"screeneffect_door"}, USScreenEffect_Door)
 
+-- Kills entity if it leaves predefined out of bounds area 1000 pixels out of screen bounds
 USOutOfBoundsKill = function(ent)
 	local c = GetEntComps(ent)
 	if c.pos.x > SC_WIDTH + 1000 or c.pos.x < -1000 or c.pos.y > SC_HEIGHT + 1000 or c.pos.y < -1000 then
