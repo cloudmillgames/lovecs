@@ -16,7 +16,8 @@ DefineComponent("dir", CDir)
 
 -- a string
 CText = {
-	text = ""
+	text = "",
+	scale = 1
 }
 DefineComponent("text", CText)
 

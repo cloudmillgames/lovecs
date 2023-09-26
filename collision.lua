@@ -85,16 +85,26 @@ Collision.ID = {
     layer = 0,      -- collision only calculated between different layers
     events = {},    -- events queue for current frame
 
-    sensor = false, -- sensing collidor, means other non-sensor collider doesn't get event
+    sensor = false, -- sensing collid, other non-sensor collid doesn't get event
                     -- an object both static and sensor is invalid
                     -- sensor doesn't sense sensors, only non-sensor colliders
-    owner = -1,     -- entity that owns this collid, used so sensor ignores owning entity
+    owner = -1,     -- ent owns this collid, used so sensor ignores owning ent
                     -- no need to set this if collid is not a sensor
-    sense_own_layer = false,-- when true sensor senses its own layer colliders as well
+    sense_own_layer = false,-- sensor senses its own layer collids as well
 
     custom = nil    -- custom data that can be set to anything
 }
 DefineComponent("collid", Collision.ID)
+
+Collision.Map = {
+    matrix = {},    -- 2D matrix of map tiles, 0 means no tile there
+    ent_matrix = {},-- 2D matrix of map tile entities, nil for no-tile there
+    tile_size = {8, 8}, -- SCALED size
+    columns = 16,   -- how many columns?
+    rows = 16,      -- how many rows?
+    map_rect = {}   -- {x=, y=, w=, h=} SCALED
+}
+DefineComponent("collmap", Collision.Map)
 
 -- Collision system checks/events
 -- p1, p2: positions ("pos")
@@ -171,9 +181,80 @@ Collision.run = function()
         c.collid.events = {}
     end
 
-    -- Run collision detection
-    for i=1,#ents do
-        for j=i,#ents do
+    -- Collision detection between map colliders and geometric colliders
+    local collmap_ents = CollectEntitiesWith({"collmap"})
+    local collmap = nil
+    local idx = -1
+    local number_to_map = function(n, tw)
+        return math.floor(n / tw) + 1
+    end
+    local point_to_map_coords = function(x, y, tw, th)
+        return math.floor(x / tw) + 1, math.floor(y / th) + 1
+    end
+    -- checks a tile for collision and returns maptile entity there
+    local check_tile_collision = function(cm, column, row)
+        local ix = ((row - 1) * cm.columns) + column
+        if cm.matrix[ix] > 0 then
+            assert(cm.ent_matrix[ix] ~= nil, "maptile entity not defined at: "..tostring(row)..", "..tostring(column).." ["..tostring(ix).."]")
+            return cm.ent_matrix[ix]
+        end
+        return 0
+    end
+    -- If collision, returns map tile entity (>0), if not returns 0
+    local point_collides_map = function(cm, x, y, tw, th)
+        local column, row = point_to_map_coords(x, y, tw, th)
+        if column > 0 and column <= cm.columns and row > 0 and row <= cm.rows then
+            return check_tile_collision(cm, column, row)
+        end
+        return 0
+    end
+    -- Ideally, there should be one map collider only
+    for _,cment in pairs(collmap_ents) do
+        collmap = GetEntComp(cment, "collmap")
+        for i=1,#ents do
+            e1 = ents[i]
+            e1c = GetEntComps(e1)
+            e2 = 0
+
+            if e1c.collid.dynamic == true then
+                if e1c.collshape.type == SHAPE_POINT then
+                    -- point to maptile collision
+                    e2 = point_collides_map(collmap, e1c.collshape.x - collmap.map_rect.x, e1c.collshape.y - collmap.map_rect.y, collmap.tile_.tile_size[1], collmap.tile_size[2])
+                elseif e1c.collshape.type == SHAPE_RECT then
+                    -- scan all vert/horiz maptiles that intersect rect
+                    local x1 = number_to_map(e1c.pos.x + e1c.collshape.x - collmap.map_rect.x + 1, collmap.tile_size[1])
+                    local x2 = number_to_map(e1c.pos.x + e1c.collshape.x - collmap.map_rect.x + e1c.collshape.w - 1, collmap.tile_size[1])
+                    local y1 = number_to_map(e1c.pos.y + e1c.collshape.y - collmap.map_rect.y + 1, collmap.tile_size[2])
+                    local y2 = number_to_map(e1c.pos.y + e1c.collshape.y - collmap.map_rect.y + e1c.collshape.h - 1, collmap.tile_size[2])
+                    e2 = 0
+                    for y=y1,y2 do
+                        for x=x1,x2 do
+                            if is_between(x, 1, collmap.columns) and is_between(y, 1, collmap.rows) then
+                                e2 = check_tile_collision(collmap, x, y)
+                                if e2 > 0 then
+                                    break
+                                end
+                            end
+                        end
+                        if e2 > 0 then
+                            break
+                        end
+                    end
+                elseif e1c.collshape.type == SHAPE_CIRCLE then
+                    error("Map collider against circles is unimplemented")
+                end
+
+                if e2 > 0 then
+                    add(e1c.collid.events, {e2, e1})
+                    print("MAP COLLISION: "..tostring(e2).." -> "..tostring(e1))
+                end
+            end
+        end
+    end
+
+    -- Run collision detection between geometric colliders
+    for i=1,#ents-1 do
+        for j=i+1,#ents do
             e1 = ents[i]
             e2 = ents[j]
             e1c = GetEntComps(e1)

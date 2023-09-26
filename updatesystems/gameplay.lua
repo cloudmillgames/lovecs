@@ -75,14 +75,27 @@ USInitGame = function(ent)
 		left_shape.h = bound_rect.h - SC_TILE_HEIGHT * 2
 	end
 	local def_map = function(mapnum)
+		-- Map collider
+		local collmap_ent = SpawnEntity({"collmap"})
+		local collmap = GetEntComp(collmap_ent, "collmap")
+		collmap.tile_size = {8 * SCALE, 8 * SCALE}
+		collmap.map_rect = makeRect(SC_MAP_RECT[1], SC_MAP_RECT[2], SC_MAP_RECT[3], SC_MAP_RECT[4])
+		collmap.columns = MAP_TILES_COLUMNS * 2
+		collmap.rows = MAP_TILES_ROWS * 2
+
 		-- Load map tiles
 		local m = RES_MAPS[mapnum]
 		local tl = ""
 		for j=1,MAP_TILES_ROWS * 2 do
 			for i=1,MAP_TILES_COLUMNS * 2 do
 				local idx = ((j - 1) * MAP_TILES_COLUMNS * 2) + i
+				-- collmap
+				add(collmap.matrix, m[idx])
+				-- tile
 				if m[idx] ~= 0 then
-					local se = SpawnEntity({"dbgname", "maptile", "pos", "collshape", "collid"})
+					local se = SpawnEntity({"dbgname", "maptile", "collid", "pos"})
+					collmap.ent_matrix[idx] = se
+
 					local comps = GetEntComps(se)
 
 					comps.dbgname.name = "MTile"..tostring(idx).."_"..tostring(se)
@@ -92,13 +105,10 @@ USInitGame = function(ent)
 					comps.pos.x = SC_MAP_RECT[1] + ((i - 1) * SC_TILE_WIDTH / 2)
 					comps.pos.y = SC_MAP_RECT[2] + ((j - 1) * SC_TILE_HEIGHT / 2)
 
-					comps.collshape.type = SHAPE_RECT
-					comps.collshape.w = 8 * SCALE
-					comps.collshape.h = 8 * SCALE
-
 					comps.collid.ent = se
-					comps.collid.layer = LAYER_MAP
-					comps.collid.custom = m[idx]
+					comps.collid.dynamic = false
+					comps.layer = LAYER_MAP
+					comps.custom = m[idx]
 				end
 				if m[idx] > 0 then
 					tl = tl..tostring(m[idx]).." "
@@ -125,7 +135,7 @@ USInitGame = function(ent)
 	def_player()
 	def_map(STAGE)
 	def_screen_effect()
-	Construct_SpawnDirector()
+	--Construct_SpawnDirector()
 	-- init only runs once
 	KillEntity(ent)
 end
@@ -397,7 +407,6 @@ DefineUpdateSystem({"spawndirector"}, USSpawnDirector)
 
 USEnemyControl = function(ent)
 	local c = GetEntComps(ent)
-	
 	-- movement
 	if c.enemycontrol._move_timer <= 0.0 then
 		-- time to change movement

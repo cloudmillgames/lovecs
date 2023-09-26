@@ -4,7 +4,7 @@ local text = require 'text'
 
 DSTextDrawer = function(ent)
 	local comps = GetEntComps(ent)
-	Draw.print(LAYER_UI, comps.text.text, comps.pos.x, comps.pos.y)
+	Draw.print(LAYER_UI, comps.text.text, comps.pos.x, comps.pos.y, 0, comps.text.scale, comps.text.scale)
 end
 DefineDrawSystem({"pos", "text"}, DSTextDrawer)
 
@@ -97,3 +97,15 @@ DSScreenEffect_Door = function(ent)
 	Draw.rectangle(LAYER_SCREEN, "fill", 0, rvrs, 1280, nhei)
 end
 DefineDrawSystem({"screeneffect_door"}, DSScreenEffect_Door)
+
+-- DSCollEntDebug = function(ent)
+-- 	local c = GetEntComps(ent)
+-- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x + c.collshape.x, c.pos.y + c.collshape.y, 0, 0.9, 0.9)
+-- end
+-- DefineDrawSystem({"collid", "collshape", "pos"}, DSCollEntDebug)
+
+-- DSCollMapDebug = function(ent)
+-- 	local c = GetEntComps(ent)
+-- 	Draw.print(LAYER_DEBUG, tostring(ent), c.pos.x, c.pos.y, 0, 0.9, 0.9)
+-- end
+-- DefineDrawSystem({"maptile", "pos"}, DSCollMapDebug)
